@@ -11,7 +11,8 @@
     "passwordHash": "$2b$10$VqFWPuwyyl1IDtTimxvG3.bP46iFCyyn/Su3jt2uPTPWYDnYt9TdS",
     "roles": [
       "admin",
-      "usermanager"
+      "usermanager",
+      "ai-user"
     ]
   },
   {

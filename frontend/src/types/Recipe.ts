@@ -16,7 +16,6 @@ export interface Review {
 
 export interface ExtFile {
     fileUrl: string;
-    fileBase64?: string;
     fileFulltext?: string;
 }
 

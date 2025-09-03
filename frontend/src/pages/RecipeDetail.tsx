@@ -1,7 +1,7 @@
 import {type SetStateAction, useContext, useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {RecipeContext} from "../context/RecipeContext";
-import {Badge, Button, ButtonGroup, Card, Col, Container, ListGroup, Row, Stack} from "react-bootstrap";
+import {Badge, Button, ButtonGroup, Card, Col, Container, ListGroup, Row, Stack, Table} from "react-bootstrap";
 import AddEditRecipeModal from "../modal/AddEditRecipeModal.tsx";
 import {useTranslation} from "react-i18next";
 import {useAuth} from "../context/AuthContext.tsx";
@@ -9,10 +9,11 @@ import AverageRating from "../components/AverageRating.tsx";
 import {changeRecipe, removeRecipe} from "../api/recipes.ts";
 import ReviewList from "../components/ReviewList.tsx";
 import {useFavorites} from "../context/FavoritesContext.tsx";
-import {useUsersContext} from "../context/UsersContext.tsx";
 import {BooksContext} from "../context/BooksContext.tsx";
 import type {Book} from "../types/Book.ts";
 import {getButtonOutline, getInitialThumbnailSize, getThumbnailClass, popupImgStyles, popupStyles, thumbnailSizes, type ThumbnailSizeType} from "../helper/thumbnailHelper.ts";
+import AiButton from "../components/AiButton.tsx";
+import {useUsersContext} from "../context/UsersContext.tsx";
 
 const RecipeDetail = () => {
     const {id} = useParams<{ id: string }>();
@@ -28,19 +29,20 @@ const RecipeDetail = () => {
     const recipeBook = books.find((b) => b.id === recipe?.book);
 
     const {t} = useTranslation();
-    const {user} = useAuth();
+    const {user, roles} = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         if (!recipe) {
             reloadRecipes().then();
             reloadTags().then();
-            reloadUsers().then();
             reloadBooks().then();
+            reloadUsers().then();
         }
     }, [id]);
 
     const [thumbnailSize, setThumbnailSize] = useState<ThumbnailSizeType>('original');
+    const isAiUser = roles.find(r => r === "ai-user") ?? false;
 
     const goToBook = (book: Book) => navigate(`/books/${book.id}`);
 
@@ -160,6 +162,12 @@ const RecipeDetail = () => {
 
                 <Card.Body>
                     <Row>
+                        {
+                            isAiUser && recipe.thumbnail &&
+                            <Col xs="auto">
+                                <AiButton recipeId={recipe.id} fileUrl={recipe.thumbnail} key={`aiButtons-thumb-${recipe.id}`}/>
+                            </Col>
+                        }
                         {recipe.tags && recipe.tags.length > 0 && (
                             <Col>
                                 <Card.Subtitle className="text-start mb-2">{t("recipe.tags")}</Card.Subtitle>
@@ -196,26 +204,30 @@ const RecipeDetail = () => {
                         {recipe.ingredients && recipe.ingredients.length > 0 && (
                             <Col>
                                 <Card.Subtitle className="text-start mb-2">{t("recipe.ingredients")}</Card.Subtitle>
-                                <ListGroup className="mb-4">
-                                    {recipe.ingredients.map((group, idx) => (
-                                        <div key={idx}>
-                                            {group.group && <h6 className="text-start mt-3">{group.group}</h6>}
+                                {recipe.ingredients.map((group, idx) => (
+                                    <div key={idx} className="mb-4">
+                                        {group.group && <h6 className="text-start mt-3"><small className="text-body-secondary">{group.group}</small></h6>}
+                                        <Table bordered>
+                                            <tbody>
                                             {group.items.map((ingredient, i) => (
-                                                <ListGroup.Item key={i}>
-                                                    {ingredient.amount} {ingredient.name}
-                                                </ListGroup.Item>
+                                                <tr key={i}>
+                                                    <td style={{width: "25%"}} className="text-end">{ingredient.amount}</td>
+                                                    <td className="text-start">{ingredient.name}</td>
+                                                </tr>
                                             ))}
-                                        </div>
-                                    ))}
-                                </ListGroup>
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                ))}
+
                             </Col>
                         )}
                         {recipe.steps && recipe.steps.length > 0 && (
                             <Col>
-                                <Card.Subtitle className="text-start mb-2">{t("recipe.steps")}</Card.Subtitle>
+                                <Card.Subtitle className="text-start mb-4">{t("recipe.steps")}</Card.Subtitle>
                                 <ListGroup numbered className="mb-4">
                                     {recipe.steps.map((step, i) => (
-                                        <ListGroup.Item key={i}>{step}</ListGroup.Item>
+                                        <ListGroup.Item key={i} className="text-start">{step}</ListGroup.Item>
                                     ))}
                                 </ListGroup>
                             </Col>
@@ -251,17 +263,20 @@ const RecipeDetail = () => {
                             <ListGroup>
                                 {recipe.files.map((file, i) => {
                                     if (!file.fileUrl) return null;
+                                    console.log("isAiUser", isAiUser);
                                     // Extract just the filename (without path and extension)
                                     const fileName = file.fileUrl
                                         .split('/').pop()!                // "1757936365845-Screenshot-from-2024-12-27-23-38-07.png"
                                         .replace(/^\d+-/, '')             // remove leading numbers + dash
                                         .replace(/\.[^/.]+$/, '');        // remove extension
                                     return (
-                                        <ListGroup.Item key={`file-${i}`}>
-                                            <a href={`${file.fileUrl}`} download>
-                                                {fileName}
-                                            </a>
-                                        </ListGroup.Item>
+                                        <>
+                                            <ListGroup.Item key={`file-${i}`}>
+                                                <a href={`${file.fileUrl}`} download>
+                                                    {fileName}
+                                                </a>
+                                            </ListGroup.Item>
+                                        </>
                                     );
                                 })}
                             </ListGroup>

@@ -88,10 +88,6 @@
             "type": "string",
             "description": "URL or path to the file"
           },
-          "fileBase64": {
-            "type": "string",
-            "description": "Base64-encoded contents of the file"
-          },
           "fileFulltext": {
             "type": "string",
             "description": "Extracted fulltext content of the file"

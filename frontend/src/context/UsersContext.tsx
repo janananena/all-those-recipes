@@ -3,7 +3,7 @@ import {changeUserRoles, createUser, deleteUser, getUsers} from "../api/users.ts
 import {useTranslation} from "react-i18next";
 
 type UsersContextType = {
-    users: { username: string, roles: string[] }[];
+    users: { username: string, roles: string[]}[];
     addUser: (username: string, password: string) => Promise<void>;
     removeUser: (username: string) => Promise<void>;
     changeRoles: (username: string, roles: string[]) => Promise<void>;
@@ -19,7 +19,7 @@ const UsersContext = createContext<UsersContextType>({
 });
 
 export const UsersProvider = ({children}: { children: React.ReactNode }) => {
-    const [users, setUsers] = useState<{ username: string, roles: string[] }[]>([]);
+    const [users, setUsers] = useState<{ username: string, roles: string[]}[]>([]);
     const {t} = useTranslation();
 
     const reloadUsers = async () => {

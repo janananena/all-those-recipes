@@ -130,6 +130,14 @@ function sanitizeFilename(filename) {
     return filename;
 }
 
+server.get("/ai-config.json", (req, res) => {
+    res.json({
+        googleVisionApiKey: process.env.GOOGLE_VISION_API_KEY,
+        googlePalmApiKey: process.env.GOOGLE_PALM_API_KEY,
+        ingredientPrompt: process.env.INGREDIENT_PROMPT,
+        stepsPrompt: process.env.STEPS_PROMPT
+    });
+});
 
 server.post('/uploadImage', upload.single('image'), async (req, res) => {
     try {
