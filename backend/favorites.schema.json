@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/favorites.schema.json",
+  "title": "UserFavorites",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the user favorites."
+    },
+    "username": {
+      "type": "string",
+      "description": "The name of the user"
+    },
+    "recipeIds": {
+      "type": "array",
+      "description": "List of favorite recipe IDs for this user",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["username", "recipeIds"]
+}

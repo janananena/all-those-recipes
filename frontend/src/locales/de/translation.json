@@ -1,0 +1,96 @@
+{
+  "appName": "All Those Recipes",
+  "nav": {
+    "recipes": "Alle Rezepte",
+    "tags": "Alle Tags",
+    "users": "Alle Benutzer",
+    "favorites": "Meine Favoriten",
+    "addRecipe": "+ Rezept",
+    "addTag": "+ Tag",
+    "addUser": "+ Benutzer",
+    "logout": "Abmelden",
+    "changePassword": "Passwort ändern"
+  },
+  "login": {
+    "title": "Anmelden",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Einloggen",
+    "invalidCredentials": "Ungültiger Benutzer oder ungültiges Passwort"
+  },
+  "tags": {
+    "name": "Name",
+    "selectable": "In der Rezeptsuche anklickbar",
+    "noGroup": "Keine Gruppe",
+    "group": "Gruppe",
+    "mainTag": "anklickbar",
+    "addTag": "Neues Tag hinzufügen",
+    "addTagHint": "Tag Name eingeben und Enter drücken"
+  },
+  "users": {
+    "allUsers": "Alle Benutzer",
+    "delete": "Löschen",
+    "deleteConfirmation": "Sicher, dass {{user}} gelöscht werden soll?"
+  },
+  "user": {
+    "add": "Neuen Benutzer hinzufügen",
+    "newUser": "Neuer Benutzer",
+    "newPass": "Neues Passwort",
+    "cancel": "Abbrechen",
+    "save": "Benutzer hinzufügen"
+  },
+  "recipe": {
+    "notFound": "Rezept nicht gefunden",
+    "addThumbnail": "Bild hinzufügen",
+    "ingredients": "Zutaten",
+    "addIngredients": "Zutaten hinzufügen",
+    "steps": "Zubereitung",
+    "addSteps": "Schritte hinzufügen",
+    "tags": "Tags",
+    "addTags": "Tags hinzufügen",
+    "links": "Links",
+    "addLinks": "Links hinzufügen",
+    "files": "Dateien",
+    "addFiles": "Dateien hinzufügen",
+    "edit": "Bearbeiten",
+    "averageRating": "Bewertung",
+    "myRating": "Meine Bewertung",
+    "myComment": "Dein Kommentar...",
+    "noFavorites": "Du hast noch keine Favoriten gespeichert.",
+    "removedFromFavorites": "Aus Favoriten entfernt.",
+    "modal": {
+      "edit": "Rezept bearbeiten",
+      "add": "Neues Rezept hinzufügen",
+      "addHint": "Rezeptnamen eingeben",
+      "thumbnail": "Bild",
+      "ingredientHint": "Zutat",
+      "amountHint": "Menge",
+      "ingredientGroupHint": "Gruppenname (z.B. Fleisch)",
+      "addIngredient": "Zutat hinzufügen",
+      "addGroup": "Gruppe hinzufügen",
+      "stepsHint": "Schritt {{stepNo}}",
+      "addStep": "Schritt hinzufügen",
+      "tagsHint": "z.B. Pasta, Vegan",
+      "addLink": "Link hinzufügen",
+      "cancel": "Abbrechen",
+      "submitting": "Speichern...",
+      "save": "Rezept speichern"
+    }
+  },
+  "recipes": {
+    "showAll": "Alle Rezepte anzeigen",
+    "searchHint": "Rezepte suchen...",
+    "name": "Name",
+    "tags": "Tags",
+    "avgRating": "Bewertung",
+    "myRating": "Meine Bewertung"
+  },
+  "password": {
+    "old": "Altes Passwort",
+    "new": "Neues Passwort",
+    "cancel": "Abbrechen",
+    "saving": "Speichern...",
+    "save": "Speichern"
+  },
+  "undo": "Rückgängig machen"
+}

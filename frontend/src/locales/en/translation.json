@@ -1,0 +1,96 @@
+{
+  "appName": "All Those Recipes",
+  "nav": {
+    "recipes": "All Recipes",
+    "tags": "All Tags",
+    "users": "All Users",
+    "favorites": "My Favorites",
+    "addRecipe": "+ Recipe",
+    "addTag": "+ Tag",
+    "addUser": "+ User",
+    "logout": "Logout",
+    "changePassword": "Change Password"
+  },
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Log In",
+    "invalidCredentials": "Invalid Credentials"
+  },
+  "tags": {
+    "name": "Name",
+    "selectable": "Main Tag Clickable in Recipe Search",
+    "noGroup": "No group",
+    "group": "Group",
+    "mainTag": "main tag",
+    "addTag": "Add new tag",
+    "addTagHint": "Enter tag name and press Enter"
+  },
+  "users": {
+    "allUsers": "All Users",
+    "delete": "Delete",
+    "deleteConfirmation": "Are you sure you want to delete {{user}}?"
+  },
+  "user": {
+    "add": "Add new User",
+    "newUser": "New User",
+    "newPass": "New Password",
+    "cancel": "Cancel",
+    "save": "Add User"
+  },
+  "recipe": {
+    "notFound": "Recipe not found",
+    "addThumbnail": "Add thumbnail",
+    "ingredients": "Ingredients",
+    "addIngredients": "Add Ingredients",
+    "steps": "Preparation",
+    "addSteps": "Add steps",
+    "tags": "Tags",
+    "addTags": "Add Tags",
+    "links": "Links",
+    "addLinks": "Add Links",
+    "files": "Files",
+    "addFiles": "Add Files",
+    "edit": "Edit",
+    "averageRating": "Average Rating",
+    "myRating": "My Rating",
+    "myComment": "Your Comment...",
+    "noFavorites": "You did not save any favorites yet.",
+    "removedFromFavorites": "Removed from favorites.",
+    "modal": {
+      "edit": "Edit Recipe",
+      "add": "Add New Recipe",
+      "addHint": "Enter Recipe Name",
+      "thumbnail": "Image",
+      "ingredientHint": "Ingredient",
+      "amountHint": "Amount",
+      "ingredientGroupHint": "Group Name (e.g. Meat)",
+      "addIngredient": "Add Ingredient",
+      "addGroup": "Add Group",
+      "stepsHint": "Steps {{stepNo}}",
+      "addStep": "Add Step",
+      "tagsHint": "z.B. Pasta, Vegan",
+      "addLink": "Add Link",
+      "cancel": "Cancel",
+      "submitting": "Saving...",
+      "save": "Save Recipe"
+    }
+  },
+  "recipes": {
+    "showAll": "Show All Recipes",
+    "searchHint": "Search recipes...",
+    "name": "Name",
+    "tags": "Tags",
+    "avgRating": "Average Rating",
+    "myRating": "My Rating"
+  },
+  "password": {
+    "old": "Old Password",
+    "new": "New Password",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+  "undo": "Undo"
+}

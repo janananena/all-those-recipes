@@ -1,0 +1,28 @@
+services:
+  backend:
+    container_name: all-those-recipes-server
+    build:
+      context: ./backend
+    ports:
+      - "3010"
+    volumes:
+      - ./backend/public:/app/public
+      - ./backend/users/user.json:/app/users/user.json
+      - ./backend/db.json:/app/db.json
+    env_file:
+      - ./backend/.env
+    networks:
+      - web
+
+  frontend:
+    container_name: all-those-recipes-client
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/recipeStore.schema.json",
+  "title": "RecipeStore",
+  "type": "object",
+  "description": "A collection of recipes.",
+  "properties": {
+    "recipes": {
+      "type": "array",
+      "description": "A list of all recipes in the store.",
+      "items": {
+        "$ref": "https://example.com/recipe.schema.json"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "A list of all tags used in the store.",
+      "items": {
+        "$ref": "https://example.com/tag.schema.json"
+      }
+    },
+    "favorites": {
+      "$ref": "https://example.com/favorites.schema.json"
+    }
+  },
+  "required": ["recipes", "tags", "favorites"]
+}

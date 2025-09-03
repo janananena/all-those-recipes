@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/recipe.schema.json",
+  "title": "Recipe",
+  "type": "object",
+  "description": "A single cooking recipe with ingredients, steps, and optional metadata.",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "A unique identifier for the recipe."
+    },
+    "name": {
+      "type": "string",
+      "description": "The name of the recipe."
+    },
+    "ingredients": {
+      "type": "array",
+      "description": "Grouped lists of ingredients used in the recipe.",
+      "items": {
+        "type": "object",
+        "description": "A named group of ingredients (e.g., 'dough', 'sauce').",
+        "properties": {
+          "group": {
+            "type": "string",
+            "description": "The name of the ingredient group."
+          },
+          "items": {
+            "type": "array",
+            "description": "The list of ingredients in this group.",
+            "items": {
+              "type": "object",
+              "description": "An individual ingredient with optional amount.",
+              "properties": {
+                "amount": {
+                  "type": "string",
+                  "description": "The quantity or measurement of the ingredient (e.g., '2 tbsp')."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The name of the ingredient (e.g., 'flour')."
+                }
+              },
+              "required": ["name"]
+            }
+          }
+        },
+        "required": ["group", "items"]
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "An ordered list of instructions for preparing the recipe.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "Optional tag ids for categorizing the recipe (e.g., 'vegan', 'quick').",
+      "items": {
+        "type": "string"
+      }
+    },
+    "links": {
+      "type": "array",
+      "description": "Optional URLs related to the recipe (e.g., blog posts, videos).",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "Optional file references with metadata.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string",
+            "description": "URL or path to the file"
+          },
+          "fileBase64": {
+            "type": "string",
+            "description": "Base64-encoded contents of the file"
+          },
+          "fileFulltext": {
+            "type": "string",
+            "description": "Extracted fulltext content of the file"
+          }
+        },
+        "required": ["fileUrl"]
+      }
+    }
+  ,
+    "thumbnail": {
+      "type": "string",
+      "description": "Optional filename or path to a thumbnail image."
+    },
+    "reviews": {
+      "type": "array",
+      "description": "Optional reviews per user with rating and comment.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "The name of the user who left the review."
+          },
+          "score": {
+            "type": "number",
+            "description": "The user's star rating (e.g., 4.5)."
+          },
+          "comment": {
+            "type": "string",
+            "description": "An optional comment left by the user."
+          }
+        },
+        "required": ["username"]
+      }
+    }
+  },
+  "required": ["id", "name"]
+}

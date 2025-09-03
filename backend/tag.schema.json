@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/tag.schema.json",
+  "title": "Tag",
+  "type": "object",
+  "description": "A single tag used to classify recipes.",
+  "required": ["id", "name"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the tag."
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the tag."
+    },
+    "group": {
+      "type": "string",
+      "description": "Optional group this tag belongs to (e.g., 'meat', 'country')."
+    },
+    "selectable": {
+      "type": "boolean",
+      "description": "Whether the tag should appear in tag selectors.",
+      "default": false
+    }
+  }
+}
