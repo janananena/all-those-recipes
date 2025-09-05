@@ -10,6 +10,7 @@ import sharp from 'sharp';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
@@ -115,6 +116,16 @@ server.post('/uploadFile', upload.single('file'), async (req, res) => {
         console.error(err);
         res.status(500).json({error: 'Failed to upload file'});
     }
+});
+
+// Auto-generate ID for recipes if not provided
+server.use((req, res, next) => {
+    if (req.method === 'POST' && req.path.startsWith('/recipes')) {
+        if (!req.body.id) {
+            req.body.id = uuidv4();
+        }
+    }
+    next();
 });
 
 // Schema validation middleware
