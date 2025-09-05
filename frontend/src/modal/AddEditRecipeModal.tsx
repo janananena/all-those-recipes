@@ -59,11 +59,11 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
 
     useEffect(() => {
         if (mode === "edit" && initialRecipe) {
-            initializeFields(initialRecipe);
+            initializeFields(initialRecipe).then();
         } else if (mode === "add") {
             resetFields();
         }
-    }, []);
+    }, [show, mode, initialRecipe]);
 
     async function initializeFields(recipe: Recipe): Promise<void> {
         const recipeFiles = await urlsToFiles(recipe.files?.map(f => f.fileUrl) ?? []);
@@ -94,11 +94,6 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
     }
 
     function handleClose() {
-        if (mode === "add") {
-            resetFields();
-        } else if (mode === "edit" && initialRecipe) {
-            initializeFields(initialRecipe);
-        }
         onClose();
     }
 
@@ -205,7 +200,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                 const recipeWithId = {...newRecipe, id: initialRecipe.id};
                 const res = await changeRecipe(recipeWithId);
                 updateRecipe(res);
-                initializeFields(res);
+                await initializeFields(res);
                 handleClose();
             } else {
                 const res = await createRecipe(newRecipe);
