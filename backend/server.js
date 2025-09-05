@@ -6,7 +6,6 @@ import {fileURLToPath} from 'url';
 import {dirname, join} from 'path';
 import express from 'express';
 import multer from 'multer';
-import sharp from 'sharp';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -88,10 +87,7 @@ server.post('/uploadImage', upload.single('image'), async (req, res) => {
         const outputPath = join(uploadFolder, outputFilename);
 
         console.log('Processing image...');
-        await sharp(req.file.buffer)
-            .resize({ width: 800 })
-            .jpeg({ quality: 80 })
-            .toFile(outputPath);
+        await fs.writeFile(outputPath, req.file.buffer);
 
         res.json({url: `/uploads/${outputFilename}`});
     } catch (err) {
