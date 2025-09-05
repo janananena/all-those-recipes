@@ -77,13 +77,19 @@ if (!fs.existsSync(uploadFolder)) fs.mkdirSync(uploadFolder, {recursive: true});
 const storage = multer.memoryStorage();
 const upload = multer({storage});
 
+function sanitizeFilename(filename) {
+  return filename
+    .normalize("NFKD")              // split accents
+    .replace(/[^\w.-]/g, "_");      // only keep ASCII letters, digits, dash, dot, underscore
+}
+
 server.post('/uploadImage', upload.single('image'), async (req, res) => {
     try {
         console.log('Received image upload request');
         if (!req.file) return res.status(400).json({error: 'No file uploaded'});
 
         const timestamp = Date.now();
-        const outputFilename = `${timestamp}-${req.file.originalname.replace(/\s+/g, '-')}`;
+        const outputFilename = `${timestamp}-${sanitizeFilename(req.file.originalname.replace(/\s+/g, '-'))}`;
         const outputPath = join(uploadFolder, outputFilename);
 
         console.log('Processing image...');
@@ -102,7 +108,7 @@ server.post('/uploadFile', upload.single('file'), async (req, res) => {
         if (!req.file) return res.status(400).json({error: 'No file uploaded'});
 
         const timestamp = Date.now();
-        const outputFilename = `${timestamp}-${req.file.originalname.replace(/\s+/g, '-')}`;
+        const outputFilename = `${timestamp}-${sanitizeFilename(req.file.originalname.replace(/\s+/g, '-'))}`;
         const outputPath = join(uploadFolder, outputFilename);
 
         await fs.promises.writeFile(outputPath, req.file.buffer);
