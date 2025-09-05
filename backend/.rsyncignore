@@ -1,0 +1,8 @@
+archive/
+node_modules/
+Dockerfile
+.dockerignore
+.gitignore
+.env
+db.json
+users/user.json

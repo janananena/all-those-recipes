@@ -53,7 +53,7 @@ const authMiddleware = (req, res, next) => {
 
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+        return res.status(401).json({error: 'Missing or invalid Authorization header'});
     }
 
     const token = authHeader.split(' ')[1];
@@ -62,7 +62,7 @@ const authMiddleware = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (err) {
-        return res.status(401).json({ error: 'Invalid or expired token' });
+        return res.status(401).json({error: 'Invalid or expired token'});
     }
 };
 
@@ -107,7 +107,7 @@ server.post('/uploadFile', upload.single('file'), async (req, res) => {
 
         await fs.promises.writeFile(outputPath, req.file.buffer);
 
-        res.json({ url: `/uploads/${outputFilename}` });
+        res.json({url: `/uploads/${outputFilename}`});
     } catch (err) {
         console.error(err);
         res.status(500).json({error: 'Failed to upload file'});
@@ -127,15 +127,15 @@ server.use((req, res, next) => {
 // Schema validation middleware
 server.use((req, res, next) => {
     if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if(req.path.startsWith('/recipes')) {
+        if (req.path.startsWith('/recipes')) {
             const valid = validateRecipe(req.body);
-            if (!valid) return res.status(400).json({ errors: validateRecipe.errors });
-        } else if (req.path.startsWith('/tags'))  {
+            if (!valid) return res.status(400).json({errors: validateRecipe.errors});
+        } else if (req.path.startsWith('/tags')) {
             const valid = validateTag(req.body);
-            if (!valid) return res.status(400).json({ errors: validateTag.errors });
-        } else if (req.path.startsWith('/favorites')){
+            if (!valid) return res.status(400).json({errors: validateTag.errors});
+        } else if (req.path.startsWith('/favorites')) {
             const valid = validateFavorites(req.body);
-            if (!valid) return res.status(400).json({ errors: validateFavorites.errors });
+            if (!valid) return res.status(400).json({errors: validateFavorites.errors});
         }
     }
     next();
@@ -156,7 +156,7 @@ const ensureDefaultAdminUser = async () => {
 
     if (users.length === 0) {
         const passwordHash = await bcrypt.hash('password', 10);
-        const defaultUser = { username: 'admin', passwordHash };
+        const defaultUser = {username: 'admin', passwordHash};
         await fs.promises.writeFile(usersFilePath, JSON.stringify([defaultUser], null, 2), 'utf-8');
         console.log('🔐 Default admin user created: username=admin, password=password');
     }
@@ -166,19 +166,19 @@ await ensureDefaultAdminUser();
 
 
 server.post('/createUser', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+    const {username, password} = req.body;
+    if (!username || !password) return res.status(400).json({error: 'Username and password required'});
 
     try {
         const data = await fs.promises.readFile(usersFilePath, 'utf-8');
         let users = JSON.parse(data);
 
         if (users.find(u => u.username === username)) {
-            return res.status(409).json({ error: 'User already exists' });
+            return res.status(409).json({error: 'User already exists'});
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
-        users.push({ username, passwordHash });
+        users.push({username, passwordHash});
 
         // Remove default admin if other user is added
         if (username !== 'admin' && users.some(u => u.username === 'admin')) {
@@ -188,34 +188,34 @@ server.post('/createUser', async (req, res) => {
 
         await fs.promises.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
 
-        res.status(201).json({ message: 'User created successfully' });
+        res.status(201).json({message: 'User created successfully'});
     } catch (err) {
         console.error('Error creating user:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({error: 'Internal server error'});
     }
 });
 
 server.get('/users', (req, res) => {
     fs.promises.readFile(usersFilePath, 'utf-8')
         .then(data => {
-            const users = JSON.parse(data).map(u => ({ username: u.username }));
+            const users = JSON.parse(data).map(u => ({username: u.username}));
             res.json(users);
         })
         .catch(err => {
             console.error('Failed to read users:', err);
-            res.status(500).json({ error: 'Failed to fetch users' });
+            res.status(500).json({error: 'Failed to fetch users'});
         });
 });
 
 server.delete('/users/:username', async (req, res) => {
-    const { username } = req.params;
+    const {username} = req.params;
 
     try {
         const data = await fs.promises.readFile(usersFilePath, 'utf-8');
         let users = JSON.parse(data);
 
         if (!users.find(u => u.username === username)) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({error: 'User not found'});
         }
 
         users = users.filter(u => u.username !== username);
@@ -223,29 +223,29 @@ server.delete('/users/:username', async (req, res) => {
         // If last user deleted, re-create default admin
         if (users.length === 0) {
             const passwordHash = await bcrypt.hash('password', 10);
-            users.push({ username: 'admin', passwordHash });
+            users.push({username: 'admin', passwordHash});
             console.log('All users deleted, re-created default admin (admin/password)');
         }
 
         await fs.promises.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
-        res.json({ message: `User '${username}' deleted` });
+        res.json({message: `User '${username}' deleted`});
     } catch (err) {
         console.error('Error deleting user:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({error: 'Internal server error'});
     }
 });
 
 server.get('/me', (req, res) => {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-    res.json({ username: req.user.username });
+    if (!req.user) return res.status(401).json({error: 'Unauthorized'});
+    res.json({username: req.user.username});
 });
 
 server.post('/changePassword', async (req, res) => {
-    const { oldPassword, newPassword } = req.body;
+    const {oldPassword, newPassword} = req.body;
     const username = req.user?.username;
 
     if (!username || !oldPassword || !newPassword) {
-        return res.status(400).json({ error: 'Missing required fields' });
+        return res.status(400).json({error: 'Missing required fields'});
     }
 
     try {
@@ -253,47 +253,47 @@ server.post('/changePassword', async (req, res) => {
         const users = JSON.parse(data);
         const user = users.find(u => u.username === username);
 
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (!user) return res.status(404).json({error: 'User not found'});
 
         const valid = await bcrypt.compare(oldPassword, user.passwordHash);
-        if (!valid) return res.status(403).json({ error: 'Old password incorrect' });
+        if (!valid) return res.status(403).json({error: 'Old password incorrect'});
 
         user.passwordHash = await bcrypt.hash(newPassword, 10);
 
         await fs.promises.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
-        res.json({ message: 'Password changed successfully' });
+        res.json({message: 'Password changed successfully'});
     } catch (err) {
         console.error('Error changing password:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({error: 'Internal server error'});
     }
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme-super-secret';
 
 server.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+    const {username, password} = req.body;
+    if (!username || !password) return res.status(400).json({error: 'Username and password required'});
 
     try {
         if (!fs.existsSync(usersFilePath)) {
-            return res.status(500).json({ error: 'User database not found' });
+            return res.status(500).json({error: 'User database not found'});
         }
 
         const data = await fs.promises.readFile(usersFilePath, 'utf-8');
         const users = JSON.parse(data);
         const user = users.find(u => u.username === username);
 
-        if (!user) return res.status(401).json({ error: 'Invalid username or password' });
+        if (!user) return res.status(401).json({error: 'Invalid username or password'});
 
         const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) return res.status(401).json({ error: 'Invalid username or password' });
+        if (!isValid) return res.status(401).json({error: 'Invalid username or password'});
 
-        const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({username}, JWT_SECRET, {expiresIn: '7d'});
 
-        res.json({ token });
+        res.json({token});
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({error: 'Internal server error'});
     }
 });
 
