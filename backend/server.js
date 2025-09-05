@@ -87,7 +87,7 @@ server.post('/uploadImage', upload.single('image'), async (req, res) => {
         const outputPath = join(uploadFolder, outputFilename);
 
         console.log('Processing image...');
-        await fs.writeFile(outputPath, req.file.buffer);
+        await fs.promises.writeFile(outputPath, req.file.buffer);
 
         res.json({url: `/uploads/${outputFilename}`});
     } catch (err) {
