@@ -74,8 +74,8 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
         setFiles(recipeFiles);
         setinitialRecipeFiles(recipeFiles);
         setFileObjects(recipe.files ?? []);
-        setSteps(recipe.steps ?? [""]);
-        setIngredients(recipe.ingredients ?? [{group: "", items: [{name: "", amount: ""}]}]);
+        setSteps(recipe.steps ?? []);
+        setIngredients(recipe.ingredients ?? []);
         setLinks(recipe.links ?? []);
         if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
     }
@@ -88,8 +88,8 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
         setFiles([]);
         setinitialRecipeFiles([]);
         setFileObjects([]);
-        setSteps([""]);
-        setIngredients([{group: "", items: [{name: "", amount: ""}]}]);
+        setSteps([]);
+        setIngredients([]);
         setLinks([]);
     }
 
@@ -103,23 +103,23 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
     }
 
     function handleRemoveStep(index: number) {
-        const updatedSteps = [...steps];
+        let updatedSteps = [...steps];
         if (steps.length > 1) {
             updatedSteps.splice(index, 1);
         } else {
-            updatedSteps[0] = "";
+            updatedSteps = [];
         }
         setSteps(updatedSteps);
     }
 
     function handleRemoveIngredient(groupIndex: number, itemIndex: number) {
         const updated = [...ingredients];
-        const items = updated[groupIndex].items;
+        let items = updated[groupIndex].items;
 
         if (items.length > 1) {
             items.splice(itemIndex, 1);
         } else {
-            items[0] = {name: "", amount: ""}; // Reset if only one item
+            items = []; // Reset if only one item
         }
 
         setIngredients(updated);
@@ -132,7 +132,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
             setIngredients(updated);
         } else {
             // Reset the only group
-            setIngredients([{group: "", items: [{name: "", amount: ""}]}]);
+            setIngredients([]);
         }
     }
 
@@ -155,15 +155,22 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            if (thumbnail) setThumbnailPath(await uploadImage(thumbnail));
+            let uploadedThumbnailPath = thumbnailPath;
+            if (thumbnail) {
+                uploadedThumbnailPath = await uploadImage(thumbnail);
+                setThumbnailPath(uploadedThumbnailPath);
+            }
+            const uploadedFiles: ExtFile[] = [...fileObjects];
             for (const file of files) {
                 if (!initialRecipeFiles.includes(file)) {
                     const res = await uploadFile(file);
-                    setFileObjects([...fileObjects, {fileUrl: res}]);
-                    // do not reupload
-                    setinitialRecipeFiles(files);
+                    uploadedFiles.push({fileUrl: res});
+
                 }
             }
+            setFileObjects(uploadedFiles);
+            // do not reupload
+            setinitialRecipeFiles(files);
 
             const normalizedLinks = links
                 .map(link => link.trim())
@@ -172,14 +179,25 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                     /^(https?:)?\/\//i.test(link) ? link : `https://${link}`
                 );
 
+            const normalizedIngredients = ingredients
+                .map(group => ({
+                    group: group.group ? group.group.trim() : "",
+                    items: group.items.filter(item => item.name.trim() !== "")
+                }))
+                .filter(group => group.group !== "" && group.items.length > 0);
+
+            const normalizedSteps = steps
+                .map(s => s.trim())
+                .filter(s => s !== "");
+
             const newRecipe: NewRecipe = {
                 ...initialRecipe,
                 name,
                 tags: tagsRaw.split(",").map(t => t.trim()).filter(Boolean),
-                thumbnail: thumbnailPath,
-                steps: steps,
-                ingredients: ingredients,
-                files: fileObjects.length ? fileObjects : undefined,
+                thumbnail: uploadedThumbnailPath,
+                steps: normalizedSteps.length ? normalizedSteps : undefined,
+                ingredients: normalizedIngredients.length ? normalizedIngredients : undefined,
+                files: uploadedFiles.length ? uploadedFiles : undefined,
                 links: normalizedLinks.length ? normalizedLinks : undefined,
             };
 
