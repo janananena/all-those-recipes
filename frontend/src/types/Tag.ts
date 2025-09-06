@@ -3,4 +3,5 @@ export interface Tag {
     name: string;
     group?: string;
     selectable?: boolean;
+    onTop?: boolean;
 }

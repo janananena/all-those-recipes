@@ -19,11 +19,12 @@ function TagRow({tag, onChange}: TagRowProps) {
     const [name, setName] = useState(tag.name);
     const [group, setGroup] = useState(tag.group || "");
     const [selectable, setSelectable] = useState(tag.selectable ?? false);
+    const [onTop, setOntop] = useState(tag.onTop ?? false);
     const {t} = useTranslation();
 
     const handleSave = async () => {
         try {
-            await changeTag({...tag, name, group: group || undefined, selectable});
+            await changeTag({...tag, name, group: group || undefined, selectable, onTop});
             onChange();
             setEdit(false);
         } catch (err) {
@@ -39,6 +40,7 @@ function TagRow({tag, onChange}: TagRowProps) {
             setName(tag.name);
             setGroup(tag.group || "");
             setSelectable(tag.selectable ?? false);
+            setOntop(tag.onTop ?? false);
             setEdit(false);
         }
     };
@@ -72,6 +74,15 @@ function TagRow({tag, onChange}: TagRowProps) {
                             label={t("tags.mainTag")}
                             checked={selectable}
                             onChange={(e) => setSelectable(e.target.checked)}
+                            onKeyDown={handleKeyDown}
+                        />
+                    </td>
+                    <td style={{width: '90px'}}>
+                        <Form.Check
+                            type="checkbox"
+                            label={t("tags.onTop")}
+                            checked={onTop}
+                            onChange={(e) => setOntop(e.target.checked)}
                             onKeyDown={handleKeyDown}
                         />
                     </td>
@@ -118,6 +129,13 @@ function TagRow({tag, onChange}: TagRowProps) {
                                     label={t("tags.mainTag")}
                                     checked={selectable}
                                     onChange={(e) => setSelectable(e.target.checked)}
+                                    onKeyDown={handleKeyDown}
+                                />
+                                <Form.Check
+                                    type="checkbox"
+                                    label={t("tags.onTop")}
+                                    checked={onTop}
+                                    onChange={(e) => setOntop(e.target.checked)}
                                     onKeyDown={handleKeyDown}
                                 />
                                 <div className="d-flex gap-1">
@@ -171,12 +189,18 @@ function TagRow({tag, onChange}: TagRowProps) {
                     </td>
                     <td style={{width: '90px'}}>
                         {selectable && <div style={{color: 'var(--my-blue)'}}>{t("tags.mainTag")}</div>}
-                        <Button variant="outline-secondary" className="d-md-none mt-1 small" size="sm" onClick={() => setEdit(true)}>
-                            <i className="bi bi-pencil"/>
-                        </Button>
                         {!selectable && (
                             <div/> // Spacer to push the button down
                         )}
+                    </td>
+                    <td style={{width: '90px'}}>
+                        {onTop && <div style={{color: 'var(--my-blue)'}}>{t("tags.onTop")}</div>}
+                        {!onTop && (
+                            <div/> // Spacer to push the button down
+                        )}
+                        <Button variant="outline-secondary" className="d-md-none mt-1 small" size="sm" onClick={() => setEdit(true)}>
+                            <i className="bi bi-pencil"/>
+                        </Button>
                     </td>
                     <td className="text-end d-none d-md-table-cell">
                         <Button variant="outline-secondary" size="sm" onClick={() => setEdit(true)}>
@@ -254,9 +278,10 @@ export default function AllTags() {
                     </div>
                     <Table striped responsive size="sm" className="no-border text-nowrap">
                         <thead>
-                        <th style={{width: "75%"}}/>
+                        <th style={{width: "70%"}}/>
                         <th style={{width: "10%"}} className="d-none d-md-table-cell"/>
                         <th style={{width: "10%"}}/>
+                        <th style={{width: "5%"}} className="d-none d-md-table-cell"/>
                         <th style={{width: "5%"}} className="d-none d-md-table-cell"/>
                         </thead>
                         <tbody>
@@ -276,9 +301,10 @@ export default function AllTags() {
                     </div>
                     <Table striped responsive size="sm" className="no-border text-nowrap">
                         <thead>
-                        <th style={{width: "75%"}}/>
+                        <th style={{width: "70%"}}/>
                         <th style={{width: "10%"}} className="d-none d-md-table-cell"/>
                         <th style={{width: "10%"}}/>
+                        <th style={{width: "5%"}} className="d-none d-md-table-cell"/>
                         <th style={{width: "5%"}} className="d-none d-md-table-cell"/>
                         </thead>
                         <tbody>

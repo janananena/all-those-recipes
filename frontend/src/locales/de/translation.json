@@ -21,6 +21,7 @@
   "tags": {
     "name": "Name",
     "selectable": "In der Rezeptsuche anklickbar",
+    "onTop": "obere Reihe",
     "noGroup": "Keine Gruppe",
     "group": "Gruppe",
     "mainTag": "anklickbar",

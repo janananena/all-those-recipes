@@ -21,6 +21,7 @@
   "tags": {
     "name": "Name",
     "selectable": "Main Tag Clickable in Recipe Search",
+    "onTop": "top row",
     "noGroup": "No group",
     "group": "Group",
     "mainTag": "main tag",
