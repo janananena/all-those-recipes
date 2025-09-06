@@ -10,11 +10,13 @@ RUN npm install --omit=dev
 
 COPY server.js .
 COPY schema.json .
+COPY book.schema.json .
 COPY recipe.schema.json .
 COPY tag.schema.json .
 COPY favorites.schema.json .
 COPY db.json ./
 COPY users ./users
+COPY migrations ./migrations
 
 RUN mkdir -p public/uploads
 

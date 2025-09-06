@@ -21,7 +21,14 @@
     },
     "favorites": {
       "$ref": "https://example.com/favorites.schema.json"
+    },
+    "books": {
+      "type": "array",
+      "description": "A list of books in the store.",
+      "items": {
+        "$ref": "https://example.com/book.schema.json"
+      }
     }
   },
-  "required": ["recipes", "tags", "favorites"]
+  "required": ["recipes", "tags", "favorites", "books"]
 }

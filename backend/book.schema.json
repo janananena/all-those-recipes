@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/book.schema.json",
+  "title": "Book",
+  "type": "object",
+  "description": "A book used to group recipes or save full pdfs.",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the book."
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the book."
+    },
+    "author": {
+      "type": "string",
+      "description": "Display name of the book."
+    },
+    "links": {
+      "type": "array",
+      "description": "Optional URLs related to the recipe (e.g., blog posts, videos).",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "recipes": {
+      "type": "array",
+      "description": "Optional recipe ids.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "Optional file references with metadata.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string",
+            "description": "URL or path to the file"
+          }
+        },
+        "required": [
+          "fileUrl"
+        ]
+      }
+    },
+    "thumbnail": {
+      "type": "string",
+      "description": "Optional filename or path to a thumbnail image."
+    },
+    "reviews": {
+      "type": "array",
+      "description": "Optional reviews per user with rating and comment.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "The name of the user who left the review."
+          },
+          "score": {
+            "type": "number",
+            "description": "The user's star rating (e.g., 4.5)."
+          },
+          "comment": {
+            "type": "string",
+            "description": "An optional comment left by the user."
+          }
+        },
+        "required": [
+          "username"
+        ]
+      }
+    }
+  }
+}

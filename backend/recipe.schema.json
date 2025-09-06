@@ -13,6 +13,10 @@
       "type": "string",
       "description": "The name of the recipe."
     },
+    "book": {
+      "type": "string",
+      "description": "The book of the recipe."
+    },
     "ingredients": {
       "type": "array",
       "description": "Grouped lists of ingredients used in the recipe.",
@@ -40,11 +44,16 @@
                   "description": "The name of the ingredient (e.g., 'flour')."
                 }
               },
-              "required": ["name"]
+              "required": [
+                "name"
+              ]
             }
           }
         },
-        "required": ["group", "items"]
+        "required": [
+          "group",
+          "items"
+        ]
       }
     },
     "steps": {
@@ -88,10 +97,11 @@
             "description": "Extracted fulltext content of the file"
           }
         },
-        "required": ["fileUrl"]
+        "required": [
+          "fileUrl"
+        ]
       }
-    }
-  ,
+    },
     "thumbnail": {
       "type": "string",
       "description": "Optional filename or path to a thumbnail image."
@@ -115,9 +125,14 @@
             "description": "An optional comment left by the user."
           }
         },
-        "required": ["username"]
+        "required": [
+          "username"
+        ]
       }
     }
   },
-  "required": ["id", "name"]
+  "required": [
+    "id",
+    "name"
+  ]
 }
