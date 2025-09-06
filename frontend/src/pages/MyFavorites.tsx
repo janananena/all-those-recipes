@@ -179,25 +179,25 @@ export default function MyFavorites() {
 
                                     return (<div className="mb-1">
                                             <div className="d-flex align-items-start gap-3">
-                                                <div style={{width: '120px', height: '120px', flexShrink: 0}}>
+                                                <div style={{width: '120px', minHeight: '120px', flexShrink: 0}}>
                                                     {recipe.thumbnail ? (
                                                         <img
                                                             src={recipe.thumbnail}
                                                             alt={recipe.name}
                                                             className="img-fluid rounded"
-                                                            style={{width: '120px', height: '120px', objectFit: 'cover'}}
+                                                            style={{width: '120px', minHeight: '120px', objectFit: 'cover'}}
                                                         />
                                                     ) : (
                                                         <div
                                                             className="bg-secondary text-white d-flex justify-content-center align-items-center rounded"
-                                                            style={{width: '120px', height: '120px', fontSize: '0.8rem'}}
+                                                            style={{width: '120px', minHeight: '120px', fontSize: '0.8rem'}}
                                                         >
                                                             No Image
                                                         </div>
                                                     )}
                                                 </div>
 
-                                                <div className="flex-grow-1" style={{height: '120px'}}>
+                                                <div className="flex-grow-1" style={{minHeight: '120px'}}>
                                                     <ReviewItem
                                                         review={myReview}
                                                         editable
