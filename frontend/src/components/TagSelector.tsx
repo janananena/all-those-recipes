@@ -14,6 +14,8 @@ const TagSelector = ({searchTags, onSelect, onClear}: TagSelectorProps) => {
     const {tags} = useContext(RecipeContext);
     const {t} = useTranslation();
     const selectableTags = tags.filter(tag => tag.selectable);
+    const onTopSelectableTags = selectableTags.filter(tag => tag.onTop);
+    const remainingSelectableTags = selectableTags.filter(tag => !tag.onTop);
 
     // 🔹 Group tags by group name (excluding undefined)
     const groupNames = Array.from(
@@ -56,9 +58,23 @@ const TagSelector = ({searchTags, onSelect, onClear}: TagSelectorProps) => {
                 </Stack>
             )}
 
+            {/* 🔹 Tag onTop badges row */}
+            <Stack direction="horizontal" gap={2} className="flex-wrap align-items-center mb-2">
+                {onTopSelectableTags.map(tag => (
+                    <span
+                        key={tag.id}
+                        className="badge top-badge rounded-pill"
+                        style={{cursor: 'pointer'}}
+                        onClick={() => onSelect({type: 'tag', value: tag.name})}
+                    >
+                        {tag.name}
+                    </span>
+                ))}
+            </Stack>
+
             {/* 🔹 Tag badges row */}
             <Stack direction="horizontal" gap={2} className="flex-wrap align-items-center">
-                {selectableTags.map(tag => (
+                {remainingSelectableTags.map(tag => (
                     <Badge
                         key={tag.id}
                         pill

@@ -4,6 +4,7 @@
   padding: 2rem;
   text-align: center;
   --my-blue: #4e88c7;
+  --my-blue-2: #77a4d4;
   --my-red: #a94442;
 }
 
@@ -56,6 +57,10 @@ tr.no-border td {
 
 .custom-badge {
   background-color: var(--my-blue) !important;
+}
+
+.top-badge {
+  background-color: var(--my-blue-2) !important;
 }
 
 .btn-outline-red {
