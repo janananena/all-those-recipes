@@ -1,4 +1,4 @@
-import React, {useContext} from "react";
+import React, {useContext, useMemo} from "react";
 import Table from "react-bootstrap/Table";
 import type {Recipe} from "../types/Recipe";
 import {useTranslation} from "react-i18next";
@@ -8,6 +8,7 @@ import UserRating from "./UserRating.tsx";
 import AverageRating from "./AverageRating.tsx";
 import {useAuth} from "../context/AuthContext.tsx";
 import {useFavorites} from "../context/FavoritesContext.tsx";
+import {BooksContext} from "../context/BooksContext.tsx";
 
 type Props = {
     recipes: Recipe[];
@@ -17,6 +18,7 @@ type Props = {
 const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
     const {tags} = useContext(RecipeContext);
     const {favorites, flipFavorite} = useFavorites();
+    const {books} = useContext(BooksContext);
     const {user} = useAuth();
     const {t} = useTranslation();
 
@@ -26,26 +28,34 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
         return userFavorites.includes(id);
     }
 
-    return (
-        <Table striped hover responsive>
-            <thead>
-            <tr>
-                <th style={{ width: '40px' }} className="text-muted" />
-                <th style={{ width: '40%' }} className="text-muted">{t("recipes.name")}</th>
-                <th style={{ width: '30%' }} className="text-muted d-none d-md-table-cell">{t("recipes.tags")}</th>
-                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{ width: '15%' }}>{t("recipes.avgRating")}</th>
-                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{ width: '15%' }}>{t("recipes.myRating")}</th>
-            </tr>
-            </thead>
-            <tbody>
-            {recipes.map((recipe) => (
-                <tr key={recipe.id} onClick={() => onSelect(recipe)} style={{ cursor: 'pointer' }}>
+    const recipeBook = (recipe: Recipe) => books.find((b) => b.id === recipe?.book);
+
+    const groupedRecipes = useMemo(() => {
+        const groups: Record<string, Recipe[]> = {};
+        const ungrouped: Recipe[] = [];
+
+        recipes.forEach((recipe) => {
+            if (recipe.book) {
+                if (!groups[recipe.book]) groups[recipe.book] = [];
+                groups[recipe.book].push(recipe);
+            } else {
+                ungrouped.push(recipe);
+            }
+        });
+
+        return {groups, ungrouped};
+    }, [recipes]);
+
+    function RecipeTableRow(recipe: Recipe) {
+        return (
+            <>
+                <tr key={recipe.id} onClick={() => onSelect(recipe)} style={{cursor: 'pointer'}}>
                     {user && (
                         <td>
                             <i
                                 className={`bi ${isFavorite(recipe.id) ? 'bi-bookmark-fill' : 'bi-bookmark'}`}
                                 role="button"
-                                style={{ color: 'var(--my-blue)' }}
+                                style={{color: 'var(--my-blue)'}}
                                 onClick={async (e) => {
                                     e.stopPropagation();
                                     await flipFavorite(user, recipe.id);
@@ -54,7 +64,7 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
                         </td>
                     )}
                     <td className="text-muted">
-                        <div>{recipe.name}</div>
+                        <div className="text-start">{recipe.name}</div>
                         {/* Tags below name on small screens */}
                         <div className="d-md-none mt-1 small text-muted">
                             {recipe.tags?.map((tagId, index) => {
@@ -64,13 +74,16 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
                                         key={index}
                                         bg="secondary"
                                         className="me-1"
-                                        style={{ textTransform: 'capitalize' }}
+                                        style={{textTransform: 'capitalize'}}
                                     >
                                         {tag?.name}
                                     </Badge>
                                 );
                             })}
                         </div>
+                    </td>
+                    <td className="text-muted text-nowrap">
+                        <div>{recipeBook(recipe)?.name ?? ""}</div>
                     </td>
                     <td className="d-none d-md-table-cell">
                         {recipe.tags?.map((tagId, index) => {
@@ -80,7 +93,7 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
                                     key={index}
                                     bg="secondary"
                                     className="me-1"
-                                    style={{ textTransform: 'capitalize' }}
+                                    style={{textTransform: 'capitalize'}}
                                 >
                                     {tag?.name}
                                 </Badge>
@@ -88,13 +101,33 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
                         })}
                     </td>
                     <td className="text-nowrap d-none d-md-table-cell">
-                        <AverageRating reviews={recipe.reviews || []} />
+                        <AverageRating reviews={recipe.reviews || []}/>
                     </td>
                     <td className="text-nowrap d-none d-md-table-cell">
-                        <UserRating reviews={recipe.reviews || []} username={user ?? ' '} />
+                        <UserRating reviews={recipe.reviews || []} username={user ?? ' '}/>
                     </td>
                 </tr>
+            </>
+        );
+    }
+
+    return (
+        <Table striped hover responsive>
+            <thead>
+            <tr>
+                <th style={{width: '40px'}} className="text-muted"/>
+                <th style={{width: '40%'}} className="text-muted text-start">{t("recipes.name")}</th>
+                <th style={{width: '10%'}} className="text-muted">{t("recipes.book")}</th>
+                <th style={{width: '20%'}} className="text-muted d-none d-md-table-cell">{t("recipes.tags")}</th>
+                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("recipes.avgRating")}</th>
+                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("recipes.myRating")}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {Object.entries(groupedRecipes.groups).map(([, bookRecipes]) => (
+                bookRecipes.map(recipe => RecipeTableRow(recipe))
             ))}
+            {groupedRecipes.ungrouped.map((recipe) => RecipeTableRow(recipe))}
             </tbody>
         </Table>
 

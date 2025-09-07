@@ -8,10 +8,12 @@ import RecipeTable from "../components/RecipeTable";
 import {useNavigate, useSearchParams} from "react-router-dom";
 import {RecipeContext} from "../context/RecipeContext";
 import {useFavorites} from "../context/FavoritesContext.tsx";
+import {BooksContext} from "../context/BooksContext.tsx";
 
 export const AllRecipes = () => {
     const {recipes, reloadRecipes, reloadTags} = useContext(RecipeContext);
     const {reloadFavorites} = useFavorites();
+    const {reloadBooks} = useContext(BooksContext);
     const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -21,6 +23,7 @@ export const AllRecipes = () => {
         reloadRecipes().then();
         reloadTags().then();
         reloadFavorites().then();
+        reloadBooks().then();
 
         const tagParams = searchParams.getAll("tag");
         const textParams = searchParams.getAll("text");
