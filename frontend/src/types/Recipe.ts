@@ -29,6 +29,7 @@ export interface NewRecipe {
     files?: ExtFile[];
     thumbnail?: string;
     reviews?: Review[];
+    book?: string;
 }
 
 export interface Recipe extends NewRecipe {
