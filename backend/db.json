@@ -558,8 +558,6 @@
     {
       "id": "129",
       "name": "Gegrilltes Steak Ratatouille Safran Reis (signiert)",
-      "ingredients": [],
-      "steps": [],
       "tags": [
         "cooked",
         "great",
@@ -567,13 +565,13 @@
         "jamies_15_minuten_küche",
         "reis"
       ],
-      "links": [],
       "files": [
         {
           "fileUrl": "uploads/1752195915819-jamie_15_gegrilltes_steak_ratatouille_safran_reis-(signiert).pdf"
         }
       ],
-      "thumbnail": "/uploads/1751993740764-jamie_15_gegrilltes_steak_ratatouille_safran_reis-(signiert)_thumb.jpg"
+      "thumbnail": "/uploads/1751993740764-jamie_15_gegrilltes_steak_ratatouille_safran_reis-(signiert)_thumb.jpg",
+      "book": "jamies-15-minuten-küche"
     },
     {
       "id": "130",
@@ -1366,20 +1364,18 @@
     {
       "id": "176",
       "name": "Chocolate Celebration Cake Make",
-      "ingredients": [],
-      "steps": [],
       "tags": [
         "bake",
         "jamie",
         "jamies_comfort_food"
       ],
-      "links": [],
       "files": [
         {
           "fileUrl": "uploads/1752195916661-Chocolate-Celebration-Cake-Comfort-Food-Jamie-Oliver-make.pdf"
         }
       ],
-      "thumbnail": "/uploads/1751993758042-Chocolate-Celebration-Cake-Comfort-Food-Jamie-Oliver-make_thumb.jpg"
+      "thumbnail": "/uploads/1751993758042-Chocolate-Celebration-Cake-Comfort-Food-Jamie-Oliver-make_thumb.jpg",
+      "book": "jamies-comfort-food"
     },
     {
       "id": "177",
@@ -4739,20 +4735,18 @@
     {
       "id": "380",
       "name": "Gemüse Couscous und Hähnchen",
-      "ingredients": [],
-      "steps": [],
       "tags": [
         "hähnchen",
         "jamie",
         "jamies_15_minuten_küche"
       ],
-      "links": [],
       "files": [
         {
           "fileUrl": "uploads/1752195919993-jamie_15_gemuese_couscous_und_haenchen.pdf"
         }
       ],
-      "thumbnail": "/uploads/1751993821111-jamie_15_gemuese_couscous_und_haenchen_thumb.jpg"
+      "thumbnail": "/uploads/1751993821111-jamie_15_gemuese_couscous_und_haenchen_thumb.jpg",
+      "book": "jamies-15-minuten-küche"
     },
     {
       "id": "381",
@@ -7047,5 +7041,20 @@
       "id": "IXK10nS"
     }
   ],
-  "books": []
+  "books": [
+    {
+      "id": "jamies-15-minuten-küche",
+      "name": "Jamies 15 Minuten Küche",
+      "author": "Jamie Oliver"
+    },
+    {
+      "name": "Jamies Comfort Food",
+      "id": "jamies-comfort-food",
+      "author": "Jamie Oliver"
+    },
+    {
+      "id": "empty-book",
+      "name": "Empty Book"
+    }
+  ]
 }
