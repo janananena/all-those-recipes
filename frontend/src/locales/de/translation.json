@@ -4,6 +4,7 @@
     "recipes": "Alle Rezepte",
     "tags": "Alle Tags",
     "users": "Alle Benutzer",
+    "books": "Alle Bücher",
     "favorites": "Meine Favoriten",
     "addRecipe": "+ Rezept",
     "addTag": "+ Tag",
@@ -17,6 +18,21 @@
     "password": "Passwort",
     "submit": "Einloggen",
     "invalidCredentials": "Ungültiger Benutzer oder ungültiges Passwort"
+  },
+  "book": {
+    "author": "Autor",
+    "recipes": "Rezepte",
+    "addAuthorHint": "Autor eingeben"
+  },
+  "books": {
+    "allBooks": "Alle Bücher",
+    "addBook": "Neues Buch hinzufügen",
+    "addBookHint": "Buchtitel eingeben und Enter drücken",
+    "name": "Titel",
+    "author": "Autor",
+    "recipesCnt": "#Rezepte",
+    "avgRating": "Bewertung",
+    "myRating": "Meine Bewertung"
   },
   "tags": {
     "name": "Name",
@@ -63,6 +79,7 @@
       "edit": "Rezept bearbeiten",
       "add": "Neues Rezept hinzufügen",
       "addHint": "Rezeptnamen eingeben",
+      "bookHint": "Buch hinzufügen",
       "thumbnail": "Bild",
       "ingredientHint": "Zutat",
       "amountHint": "Menge",

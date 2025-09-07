@@ -67,6 +67,9 @@ export default function AppNavbar() {
                         <Nav.Link as={Link} to="/favorites" onClick={closeMenu}>
                             {t("nav.favorites")}
                         </Nav.Link>
+                         <Nav.Link as={Link} to="/books" onClick={closeMenu}>
+                            {t("nav.books")}
+                        </Nav.Link>
 
                         {isRecipes && (
                             <Button variant="outline-secondary" size="sm" onClick={() => {

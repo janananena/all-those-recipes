@@ -9,6 +9,7 @@ import {AuthProvider} from "./context/AuthContext.tsx";
 import {UsersProvider} from "./context/UsersContext.tsx";
 import './i18n';
 import {FavoritesProvider} from "./context/FavoritesContext.tsx";
+import {BooksProvider} from "./context/BooksContext.tsx";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <UsersProvider>
                 <FavoritesProvider>
                     <RecipeProvider>
-                        <App/>
+                        <BooksProvider>
+                            <App/>
+                        </BooksProvider>
                     </RecipeProvider>
                 </FavoritesProvider>
             </UsersProvider>

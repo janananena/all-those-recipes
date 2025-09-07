@@ -4,6 +4,7 @@
     "recipes": "All Recipes",
     "tags": "All Tags",
     "users": "All Users",
+    "books": "All Books",
     "favorites": "My Favorites",
     "addRecipe": "+ Recipe",
     "addTag": "+ Tag",
@@ -17,6 +18,21 @@
     "password": "Password",
     "submit": "Log In",
     "invalidCredentials": "Invalid Credentials"
+  },
+  "book": {
+    "author": "Author",
+    "recipes": "Recipes",
+    "addAuthorHint": "add Author"
+  },
+  "books": {
+    "allBooks": "All Books",
+    "addBook": "Add new book",
+    "addBookHint": "Enter book title and press Enter",
+    "name": "Title",
+    "author": "Author",
+    "recipesCnt": "#Recipes",
+    "avgRating": "Average Rating",
+    "myRating": "My Rating"
   },
   "tags": {
     "name": "Name",
@@ -63,6 +79,7 @@
       "edit": "Edit Recipe",
       "add": "Add New Recipe",
       "addHint": "Enter Recipe Name",
+      "bookHint": "Add Book",
       "thumbnail": "Image",
       "ingredientHint": "Ingredient",
       "amountHint": "Amount",

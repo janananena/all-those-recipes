@@ -12,6 +12,8 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import AllUsers from "./pages/AllUsers.tsx";
 import './App.css';
 import MyFavorites from "./pages/MyFavorites.tsx";
+import AllBooks from "./pages/AllBooks.tsx";
+import BookDetail from "./pages/BookDetail.tsx";
 
 const router = createBrowserRouter([
     {
@@ -49,6 +51,14 @@ const router = createBrowserRouter([
             {
                 path: 'favorites',
                 element: <MyFavorites/>
+            },
+            {
+                path: 'books',
+                element: <AllBooks/>
+            },
+            {
+                path: 'books/:id',
+                element: <BookDetail/>
             }
         ],
     },
