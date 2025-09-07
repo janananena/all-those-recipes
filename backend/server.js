@@ -22,6 +22,8 @@ const rawTagSchema = await fs.promises.readFile(new URL('./tag.schema.json', imp
 const tagSchema = JSON.parse(rawTagSchema);
 const rawFavoritesSchema = await fs.promises.readFile(new URL('./favorites.schema.json', import.meta.url));
 const favoritesSchema = JSON.parse(rawFavoritesSchema);
+const rawBooksSchema = await fs.promises.readFile(new URL('./book.schema.json', import.meta.url));
+const booksSchema = JSON.parse(rawBooksSchema);
 
 const router = jsonServer.router(process.env.DATABASE_FILE);
 const middlewares = jsonServer.defaults();
@@ -32,10 +34,12 @@ addFormats(ajv);
 ajv.addSchema(recipeSchema, 'https://example.com/recipe.schema.json');
 ajv.addSchema(tagSchema, 'https://example.com/tag.schema.json');
 ajv.addSchema(favoritesSchema, 'https://example.com/favorites.schema.json');
+ajv.addSchema(booksSchema, 'https://example.com/book.schema.json');
 
 const validateRecipe = ajv.compile(recipeSchema);
 const validateTag = ajv.compile(tagSchema);
 const validateFavorites = ajv.compile(favoritesSchema);
+const validateBooks = ajv.compile(booksSchema);
 
 // Middleware
 server.use(middlewares);
@@ -142,6 +146,9 @@ server.use((req, res, next) => {
         } else if (req.path.startsWith('/favorites')) {
             const valid = validateFavorites(req.body);
             if (!valid) return res.status(400).json({errors: validateFavorites.errors});
+        } else if (req.path.startsWith('/books')) {
+            const valid = validateBooks(req.body);
+            if (!valid) return res.status(400).json({errors: validateBooks.errors});
         }
     }
     next();
