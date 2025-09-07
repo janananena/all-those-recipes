@@ -1,5 +1,5 @@
 import {type SetStateAction, useContext, useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {RecipeContext} from "../context/RecipeContext";
 import {Badge, Button, ButtonGroup, Card, Col, Container, ListGroup, Row, Stack} from "react-bootstrap";
 import AddEditRecipeModal from "../modal/AddEditRecipeModal.tsx";
@@ -10,6 +10,8 @@ import {changeRecipe} from "../api/recipes.ts";
 import ReviewList from "../components/ReviewList.tsx";
 import {useFavorites} from "../context/FavoritesContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
+import {BooksContext} from "../context/BooksContext.tsx";
+import type {Book} from "../types/Book.ts";
 
 const RecipeDetail = () => {
     const {id} = useParams<{ id: string }>();
@@ -17,19 +19,23 @@ const RecipeDetail = () => {
     const {getFavorite, flipFavorite} = useFavorites();
     const [isFavorite, setIsFavorite] = useState(false);
     const {reloadUsers} = useUsersContext();
+    const {books, reloadBooks} = useContext(BooksContext);
     const [showImagePopup, setShowImagePopup] = useState(false);
     const [showEditRecipe, setShowEditRecipe] = useState(false);
 
     const recipe = recipes.find((r) => r.id === id);
+    const recipeBook = books.find((b) => b.id === recipe?.book);
 
     const {t} = useTranslation();
     const {user} = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!recipe) {
             reloadRecipes().then();
             reloadTags().then();
             reloadUsers().then();
+            reloadBooks().then();
         }
     }, [id]);
 
@@ -62,6 +68,8 @@ const RecipeDetail = () => {
     };
 
     const currentTheme = document.documentElement.getAttribute('data-bs-theme'); // "light" or "dark"
+
+    const goToBook = (book: Book) => navigate(`/books/${book.id}`);
 
     useEffect(() => {
         if (!recipe) {
@@ -221,6 +229,20 @@ const RecipeDetail = () => {
                                             <ListGroup.Item key={i}>{step}</ListGroup.Item>
                                         ))}
                                     </ListGroup>
+                                </>
+                            )}
+
+                            {recipeBook && (
+                                <>
+                                    <h4>{t('recipe.book')}</h4>
+                                    <div
+                                        role="button"
+                                        className="text-primary mb-2"
+                                        style={{cursor: "pointer"}}
+                                        onClick={() => goToBook(recipeBook)}
+                                    >
+                                        {recipeBook.name}
+                                    </div>
                                 </>
                             )}
 
