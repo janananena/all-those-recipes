@@ -1,9 +1,9 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {BooksContext} from "../context/BooksContext.tsx";
-import {useContext, useEffect, useState} from "react";
+import {useContext, useEffect} from "react";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
-import {Card, Container, Form, ListGroup} from "react-bootstrap";
+import {Card, Container, ListGroup} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import AverageRating from "../components/AverageRating.tsx";
 import type {Recipe} from "../types/Recipe.ts";
@@ -21,8 +21,6 @@ export default function BookDetail() {
     const {user} = useAuth();
 
     const book = books.find((b) => b.id === id);
-
-    const [newAuthorInput, setNewAuthorInput] = useState(book?.author ?? "");
 
     useEffect(() => {
         if (!book) {
@@ -45,19 +43,6 @@ export default function BookDetail() {
 
     const goToRecipe = (recipe: Recipe) => navigate(`/recipes/${recipe.id}`);
 
-    const handleAddAuthor = async () => {
-        const newBook = {...book, author: newAuthorInput.trim()};
-        const res = await changeBook(newBook);
-        updateBook(res);
-    }
-
-    const handleKeyPressAuthor = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            handleAddAuthor().then();
-        }
-    };
-
     return (
         <Container className="py-4">
             <Card className="mb-4">
@@ -73,22 +58,14 @@ export default function BookDetail() {
                     </Card.Title>
                 </Card.Body>
                 <Card.Body>
-                    <Form className="mt-4">
-                        <Form.Group className="d-flex align-items-center gap-2">
-                            <Form.Label className="mb-0" htmlFor="new-author-input">
-                                {t("book.author")}
-                            </Form.Label>
-                            <Form.Control
-                                id="new-author-input"
-                                type="text"
-                                placeholder={t("book.addAuthorHint")}
-                                value={newAuthorInput}
-                                onChange={(e) => setNewAuthorInput(e.target.value)}
-                                onKeyDown={handleKeyPressAuthor}
-                                style={{maxWidth: '300px'}} // optional, to control input width
-                            />
-                        </Form.Group>
-                    </Form>
+                    {book.author && (
+                        <>
+                            <Card.Subtitle className="text-start mb-2">{t("book.author")}</Card.Subtitle>
+                            <Card.Text className="text-start mb-2">
+                                {book.author}
+                            </Card.Text>
+                        </>
+                    )}
                 </Card.Body>
                 <Card.Body>
                     {bookRecipes.length > 0 && (
@@ -99,6 +76,27 @@ export default function BookDetail() {
                                     <ListGroup.Item action key={recipe.id} onClick={() => goToRecipe(recipe)}
                                                     className="d-flex justify-content-between align-items-center text-muted">
                                         <div>{recipe.name}</div>
+                                    </ListGroup.Item>
+                                ))}
+                            </ListGroup>
+                        </>
+                    )}
+                </Card.Body>
+                <Card.Body>
+                    {book.links && book.links.length > 0 && (
+                        <>
+                            <Card.Subtitle className="text-start mb-2">{t("book.links")}</Card.Subtitle>
+                            <ListGroup className="mb-4">
+                                {book.links.map((link, i) => (
+                                    <ListGroup.Item
+                                        key={i}
+                                        action
+                                        href={link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="d-flex justify-content-between align-items-center text-muted"
+                                    >
+                                        {link}
                                     </ListGroup.Item>
                                 ))}
                             </ListGroup>

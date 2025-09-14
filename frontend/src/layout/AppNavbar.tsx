@@ -10,21 +10,26 @@ import {useTranslation} from "react-i18next";
 import AddEditRecipeModal from "../modal/AddEditRecipeModal.tsx";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import AddTagModal from "../modal/AddTagModal.tsx";
+import AddBookModal from "../modal/AddBookModal.tsx";
+import {BooksContext} from "../context/BooksContext.tsx";
 
 export default function AppNavbar() {
     const location = useLocation();
     const isRecipes = location.pathname.startsWith('/recipes');
     const isTags = location.pathname.startsWith('/tags');
     const isUsers = location.pathname.startsWith('/users');
+    const isBooks = location.pathname.startsWith('/books');
 
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [showChangePw, setShowChangePw] = useState(false);
     const [showAddTag, setShowAddTag] = useState(false);
     const [showAddUser, setShowAddUser] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
+    const [showAddBook, setShowAddBook] = useState(false);
     const [expanded, setExpanded] = useState(false); // NEW
 
     const {addNewRecipe, updateRecipe, addNewTag} = useContext(RecipeContext);
+    const {addNewBook} = useContext(BooksContext);
     const {user, logout} = useAuth();
     const {addUser} = useUsersContext();
     const {i18n, t} = useTranslation();
@@ -95,6 +100,14 @@ export default function AppNavbar() {
                                 {t("nav.addUser")}
                             </Button>
                         )}
+                        {isBooks && (
+                            <Button variant="outline-secondary" size="sm" onClick={() => {
+                                setShowAddBook(true);
+                                closeMenu();
+                            }}>
+                                {t("nav.addBook")}
+                            </Button>
+                        )}
                     </Nav>
 
                     <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2 mt-3 mt-lg-0">
@@ -144,6 +157,7 @@ export default function AppNavbar() {
             <AddTagModal show={showAddTag} closeModal={() => setShowAddTag(false)} onAdded={addNewTag}/>
             <ChangePasswordModal show={showChangePw} onClose={() => setShowChangePw(false)}/>
             <AddUserModal show={showAddUser} onClose={() => setShowAddUser(false)} onSubmit={addUser}/>
+            <AddBookModal show={showAddBook} closeModal={() => setShowAddBook(false)} onAdded={addNewBook}/>
         </Navbar>
     );
 }

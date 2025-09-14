@@ -9,6 +9,7 @@
     "addRecipe": "+ Recipe",
     "addTag": "+ Tag",
     "addUser": "+ User",
+    "addBook": "+ Book",
     "logout": "Logout",
     "changePassword": "Change Password"
   },
@@ -22,7 +23,12 @@
   "book": {
     "author": "Author",
     "recipes": "Recipes",
-    "addAuthorHint": "add Author"
+    "links": "Links",
+    "addAuthorHint": "add Author",
+    "modal": {
+      "addLink": "add Link",
+      "recipesHint": "choose Recipes"
+    }
   },
   "books": {
     "allBooks": "All Books",
