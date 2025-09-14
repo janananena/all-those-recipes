@@ -1,4 +1,4 @@
-import React, {useContext, useMemo} from "react";
+import React, {useContext, useMemo, useState} from "react";
 import Table from "react-bootstrap/Table";
 import type {Recipe} from "../types/Recipe";
 import {useTranslation} from "react-i18next";
@@ -30,6 +30,18 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
 
     const recipeBook = (recipe: Recipe) => books.find((b) => b.id === recipe?.book);
 
+    type SortKey = "book" | "name";
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey, direction: "asc" | "desc" }>({key: "book", direction: "asc"});
+
+    const handleSort = (key: SortKey) => {
+        if (sortConfig.key === key) {
+            const newDirection = sortConfig.direction === "asc" ? "desc" : "asc";
+            setSortConfig({...sortConfig, direction: newDirection});
+        } else {
+            setSortConfig({...sortConfig, key: key});
+        }
+    }
+
     const groupedRecipes = useMemo(() => {
         const groups: Record<string, Recipe[]> = {};
         const ungrouped: Recipe[] = [];
@@ -43,8 +55,64 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
             }
         });
 
-        return {groups, ungrouped};
-    }, [recipes]);
+        // Turn groups into sortable array
+        const groupEntries = Object.entries(groups); // [ [bookName, Recipe[]], ... ]
+        groupEntries.sort(([bookNameA], [bookNameB]) => {
+            if (bookNameA < bookNameB) {
+                return sortConfig.direction === "asc" ? -1 : 1;
+            }
+            if (bookNameA > bookNameB) {
+                return sortConfig.direction === "asc" ? 1 : -1;
+            }
+            return 0;
+        });
+        ungrouped.sort((a: Recipe, b: Recipe) => {
+            const valA = a.name;
+            const valB = b.name;
+            if (valA < valB) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (valA > valB) {
+                return sortConfig.direction === "asc" ? 1 : -1;
+            }
+            return 0;
+        });
+
+        return {groups: groupEntries, ungrouped};
+    }, [recipes, sortConfig]);
+
+    const sortedRecipes: Recipe[] = useMemo(() => {
+        if (sortConfig.key === "book") {
+            return [];
+        }
+        return [...recipes].sort((a, b) => {
+            const key = sortConfig.key as keyof Recipe;
+            const valA = a[key];
+            const valB = b[key];
+
+            // Ensure they exist (or provide fallback)
+            if (valA === undefined) return 1;
+            if (valB === undefined) return -1;
+            if (valA < valB) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (valA > valB) {
+                return sortConfig.direction === "asc" ? 1 : -1;
+            }
+            return 0;
+        })
+    }, [recipes, sortConfig]);
+
+    const renderSortIndicator = (column: SortKey) => {
+        if (sortConfig.key !== column) {
+            return <i className="bi bi-arrow-down-up text-muted"></i>;
+        }
+        return sortConfig.direction === "asc" ? (
+            <i className="bi bi-caret-up-fill"></i>
+        ) : (
+            <i className="bi bi-caret-down-fill"></i>
+        );
+    };
 
     function RecipeTableRow(recipe: Recipe) {
         return (
@@ -116,18 +184,26 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
             <thead>
             <tr>
                 <th style={{width: '40px'}} className="text-muted"/>
-                <th style={{width: '40%'}} className="text-muted text-start">{t("recipes.name")}</th>
-                <th style={{width: '10%'}} className="text-muted">{t("recipes.book")}</th>
+                <th style={{width: '40%'}} className="text-muted text-start" onClick={() => handleSort("name")}>{t("recipes.name")} {renderSortIndicator("name")}</th>
+                <th style={{width: '10%'}} className="text-muted" onClick={() => handleSort("book")}>{t("recipes.book")} {renderSortIndicator("book")}</th>
                 <th style={{width: '20%'}} className="text-muted d-none d-md-table-cell">{t("recipes.tags")}</th>
                 <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("recipes.avgRating")}</th>
                 <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("recipes.myRating")}</th>
             </tr>
             </thead>
             <tbody>
-            {Object.entries(groupedRecipes.groups).map(([, bookRecipes]) => (
-                bookRecipes.map(recipe => RecipeTableRow(recipe))
-            ))}
-            {groupedRecipes.ungrouped.map((recipe) => RecipeTableRow(recipe))}
+            {sortConfig.key === "book" ? (
+                <>
+                    {groupedRecipes.groups.map(([, bookRecipes]) => (
+                        bookRecipes.map(recipe => RecipeTableRow(recipe))
+                    ))}
+                    {groupedRecipes.ungrouped.map((recipe) => RecipeTableRow(recipe))}
+                </>
+            ) : (
+                <>
+                    {sortedRecipes.map((recipe) => RecipeTableRow(recipe))}
+                </>
+            )}
             </tbody>
         </Table>
 
