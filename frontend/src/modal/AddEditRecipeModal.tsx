@@ -5,11 +5,12 @@ import {changeRecipe, createRecipe, uploadFile, uploadImage} from "../api/recipe
 import type {ExtFile, IngredientGroup, NewRecipe, Recipe} from "../types/Recipe.ts";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import CreatableSelect from "react-select/creatable";
-import type {ActionMeta, GroupBase, SingleValue, MultiValue, StylesConfig, ThemeConfig} from "react-select";
+import type {ActionMeta, GroupBase, SingleValue, MultiValue} from "react-select";
 import {createTag} from "../api/tag.ts";
 import {useTranslation} from "react-i18next";
 import {BooksContext} from "../context/BooksContext.tsx";
 import {createBook} from "../api/books.ts";
+import {customStyles, customTheme, type SelectOptionType} from "../helper/reactSelectHelper.ts";
 
 function sanitizeId(name: string): string {
     return name.trim().toLowerCase().replace(/\s+/g, "-");
@@ -49,12 +50,9 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
         .filter(tag => tagOptionIds.some(value => value === tag.id))
         .map(tag => ({value: tag.id, label: tag.name}));
     const allTagOptions = tags.map(tag => ({value: tag.id, label: tag.name}));
-    type SelectOptionType = { label: string, value: string };
 
     const selectedBookOption = books.filter(b => b.id === book).map(b => ({value: b.id, label: b.name}))[0];
     const allBookOptions = books.map(book => ({value: book.id, label: book.name}));
-
-    const isDark = document.documentElement.getAttribute("data-bs-theme") === "dark";
 
     function handleChange(newValue: SingleValue<SelectOptionType>) {
         setBook(books.find(b => b.id === newValue?.value)?.id ?? "");
@@ -250,86 +248,6 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
         }
     };
 
-    const customTheme = (isDark: boolean): ThemeConfig => (theme) => ({
-        ...theme,
-        colors: {
-            ...theme.colors,
-            neutral0: isDark ? "#212529" : theme.colors.neutral0,
-            neutral80: isDark ? "#f8f9fa" : theme.colors.neutral80,
-            primary25: isDark ? "#343a40" : theme.colors.primary25,
-            primary: "#0d6efd",
-        },
-    });
-
-    const customStyles = (isDark: boolean, isMulti: boolean) => {
-        const baseStyles: StylesConfig<SelectOptionType, boolean> = {
-            control: (base, state) => ({
-                ...base,
-                backgroundColor: isDark ? "#212529" : base.backgroundColor,
-                borderColor: isDark ? "#495057" : base.borderColor,
-                boxShadow: state.isFocused
-                    ? isDark ? "0 0 0 0.2rem rgba(13,110,253,.25)" : base.boxShadow
-                    : "none",
-                "&:hover": {
-                    borderColor: isDark ? "#adb5bd" : base.borderColor,
-                },
-            }),
-            singleValue: (base) => ({
-                ...base,
-                color: isDark ? "#f8f9fa" : base.color,
-            }),
-            placeholder: (base) => ({
-                ...base,
-                color: isDark ? "#adb5bd" : base.color,
-            }),
-            menu: (base) => ({
-                ...base,
-                backgroundColor: isDark ? "#212529" : base.backgroundColor,
-            }),
-            option: (base, state) => ({
-                ...base,
-                backgroundColor: state.isFocused
-                    ? isDark ? "#343a40" : base.backgroundColor
-                    : base.backgroundColor,
-                color: isDark ? "#f8f9fa" : base.color,
-            }),
-            dropdownIndicator: (base) => ({
-                ...base,
-                color: isDark ? "#f8f9fa" : base.color,
-                "&:hover": {
-                    color: isDark ? "#ffffff" : "#212529",
-                },
-            }),
-            clearIndicator: (base) => ({
-                ...base,
-                color: isDark ? "#f8f9fa" : base.color,
-                "&:hover": {
-                    color: isDark ? "#ffffff" : "#212529",
-                },
-            }),
-        };
-
-        if (isMulti) {
-            baseStyles.multiValue = (base) => ({
-                ...base,
-                backgroundColor: isDark ? "#495057" : base.backgroundColor,
-            });
-            baseStyles.multiValueLabel = (base) => ({
-                ...base,
-                color: isDark ? "#f8f9fa" : base.color,
-            });
-            baseStyles.multiValueRemove = (base) => ({
-                ...base,
-                color: isDark ? "#f8f9fa" : base.color,
-                ":hover": {
-                    backgroundColor: isDark ? "#6c757d" : "#e9ecef",
-                    color: isDark ? "#ffffff" : "#212529",
-                },
-            });
-        }
-        return baseStyles;
-    };
-
     return (
         <Modal show={show} onHide={handleClose} size="xl">
             <Modal.Header closeButton>
@@ -384,8 +302,8 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                                     onCreateOption={handleCreateOption}
                                     placeholder={t("recipe.modal.bookHint")}
                                     classNamePrefix="react-select"
-                                    theme={customTheme(isDark)}
-                                    styles={customStyles(isDark, false)}
+                                    theme={customTheme()}
+                                    styles={customStyles(false)}
                                 />
                             </Form.Group>
 
@@ -513,8 +431,8 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                                     onChange={handleMultiChange}
                                     placeholder={t("recipe.modal.tagsHint")}
                                     classNamePrefix="react-select"
-                                    theme={customTheme(isDark)}
-                                    styles={customStyles(isDark, true)}
+                                    theme={customTheme()}
+                                    styles={customStyles(true)}
                                 />
                             </Form.Group>
 
