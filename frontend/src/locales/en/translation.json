@@ -22,10 +22,15 @@
   },
   "book": {
     "author": "Author",
+    "edit": "Edit",
     "recipes": "Recipes",
     "links": "Links",
     "addAuthorHint": "add Author",
     "modal": {
+      "add": "Add Book",
+      "edit": "Edit Book",
+      "submitting": "Saving...",
+      "save": "Save book",
       "addLink": "add Link",
       "recipesHint": "choose Recipes"
     }

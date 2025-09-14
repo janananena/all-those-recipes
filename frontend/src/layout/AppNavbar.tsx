@@ -10,7 +10,7 @@ import {useTranslation} from "react-i18next";
 import AddEditRecipeModal from "../modal/AddEditRecipeModal.tsx";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import AddTagModal from "../modal/AddTagModal.tsx";
-import AddBookModal from "../modal/AddBookModal.tsx";
+import AddEditBookModal from "../modal/AddEditBookModal.tsx";
 import {BooksContext} from "../context/BooksContext.tsx";
 
 export default function AppNavbar() {
@@ -29,7 +29,7 @@ export default function AppNavbar() {
     const [expanded, setExpanded] = useState(false); // NEW
 
     const {addNewRecipe, updateRecipe, addNewTag} = useContext(RecipeContext);
-    const {addNewBook} = useContext(BooksContext);
+    const {addNewBook, updateBook} = useContext(BooksContext);
     const {user, logout} = useAuth();
     const {addUser} = useUsersContext();
     const {i18n, t} = useTranslation();
@@ -157,7 +157,7 @@ export default function AppNavbar() {
             <AddTagModal show={showAddTag} closeModal={() => setShowAddTag(false)} onAdded={addNewTag}/>
             <ChangePasswordModal show={showChangePw} onClose={() => setShowChangePw(false)}/>
             <AddUserModal show={showAddUser} onClose={() => setShowAddUser(false)} onSubmit={addUser}/>
-            <AddBookModal show={showAddBook} closeModal={() => setShowAddBook(false)} onAdded={addNewBook}/>
+            <AddEditBookModal show={showAddBook} closeModal={() => setShowAddBook(false)} addBook={addNewBook} updateBook={updateBook} mode="add"/>
         </Navbar>
     );
 }

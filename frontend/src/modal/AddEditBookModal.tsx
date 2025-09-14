@@ -1,36 +1,73 @@
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {Button, Form, Modal} from 'react-bootstrap';
-import Select, {type MultiValue} from 'react-select';
+import Select, {type ActionMeta, type MultiValue} from 'react-select';
 import {useTranslation} from 'react-i18next';
 import type {Tag} from "../types/Tag.ts";
-import {createBook} from "../api/books.ts";
+import {changeBook, createBook} from "../api/books.ts";
 import {RecipeContext} from "../context/RecipeContext.tsx";
-import {customStyles, customTheme} from "../helper/reactSelectHelper.ts";
+import {customStyles, customTheme, type SelectOptionType} from "../helper/reactSelectHelper.ts";
+import type {Book} from "../types/Book.ts";
+import {changeRecipe} from "../api/recipes.ts";
 
 interface AddBookModalProps {
     show: boolean;
     closeModal: () => void;
-    onAdded: (tag: Tag) => void;
+    mode: "add" | "edit";
+    initialBook?: Book;
+    addBook: (tag: Tag) => void;
+    updateBook: (tag: Tag) => void;
 }
 
-export default function AddBookModal({show, closeModal, onAdded}: AddBookModalProps) {
-    const {recipes} = useContext(RecipeContext);
-    const {t} = useTranslation();
-
+export default function AddEditBookModal({show, closeModal, mode, initialBook, addBook, updateBook}: AddBookModalProps) {
+    const {recipes, updateRecipe} = useContext(RecipeContext);
     const [name, setName] = useState('');
+
     const [author, setAuthor] = useState('');
     const [links, setLinks] = useState<string[]>([]);
-    const [bookRecipes, setBookRecipes] = useState<string[]>([]);
+    const [bookRecipesIds, setBookRecipesIds] = useState<string[]>([]);
     const [saving, setSaving] = useState(false);
 
-    const selectedRecipeOptions = recipes
-        .filter(recipe => bookRecipes.some(value => value === recipe.id))
-        .map(recipe => ({value: recipe.id, label: recipe.name}));
-    const allRecipeOptions = recipes.map(recipe => ({value: recipe.id, label: recipe.name}));
+    const {t} = useTranslation();
 
-    type SelectOptionType = { label: string, value: string };
-    const handleChangeRecipes = (newValue: MultiValue<SelectOptionType>) => {
-        setBookRecipes(newValue.map(r => r.value));
+    useEffect(() => {
+        if (mode === "edit" && initialBook) {
+            initializeFields(initialBook).then();
+        } else if (mode === "add") {
+            resetFields();
+        }
+    }, [show, mode, initialBook]);
+
+    const selectedRecipeOptions = recipes
+        .filter(recipe => bookRecipesIds.some(value => value === recipe.id))
+        .map(recipe => ({value: recipe.id, label: recipe.name}));
+    const allRecipeOptions = recipes
+        .filter(recipe => recipe.book === undefined || recipe.book === initialBook?.id)
+        .map(recipe => ({value: recipe.id, label: recipe.name}));
+
+    const handleChangeRecipes = async (_newValue: MultiValue<SelectOptionType>, actionMeta: ActionMeta<SelectOptionType>) => {
+        const id = initialBook?.id ?? name.trim().toLowerCase().replace(/\s+/g, '-');
+        if(id === undefined || id === ''){
+            return;
+        }
+        if (actionMeta.action === "select-option"){
+            const newRecipeId = actionMeta?.option?.value;
+            const selectedRecipe = recipes.find(r => r.id === newRecipeId);
+            if (selectedRecipe === undefined || newRecipeId === undefined){
+                return;
+            }
+            const res = await changeRecipe({...selectedRecipe, book: id});
+            updateRecipe(res);
+            setBookRecipesIds([...bookRecipesIds, newRecipeId]);
+        } else if (["deselect-option", "remove-value", "pop-value"].includes(actionMeta.action)){
+            const removedRecipeId = actionMeta?.removedValue?.value;
+            const removedRecipe = recipes.find(r => r.id === removedRecipeId);
+            if (removedRecipe === undefined || removedRecipeId === undefined){
+                return;
+            }
+             const res = await changeRecipe({...removedRecipe, book: undefined});
+            updateRecipe(res);
+            setBookRecipesIds(bookRecipesIds.filter(r => r !== removedRecipeId));
+        }
     }
 
     const handleSubmit = async () => {
@@ -43,16 +80,29 @@ export default function AddBookModal({show, closeModal, onAdded}: AddBookModalPr
                 .map(link =>
                     /^(https?:)?\/\//i.test(link) ? link : `https://${link}`
                 );
-
-            const newBook = await createBook({
-                id: name.trim().toLowerCase().replace(/\s+/g, '-'),
-                name: name.trim(),
-                author: author.trim(),
+            const newBook = {
+                name: name.trim() ?? '',
+                author: author.trim() ?? '',
                 links: normalizedLinks.length ? normalizedLinks : undefined,
-            });
-            onAdded(newBook);
-            resetFields();
-            closeModal();
+            }
+
+            if (mode === "add") {
+                const newBook2 = await createBook({
+                    ...newBook,
+                    id: name.trim().toLowerCase().replace(/\s+/g, '-')
+                });
+                addBook(newBook2);
+                resetFields();
+                closeModal();
+            } else if (mode === "edit" && initialBook?.id) {
+                const changedBook = await changeBook({
+                    ...newBook,
+                    id: initialBook.id
+                });
+                updateBook(changedBook);
+                await initializeFields(changedBook);
+                closeModal();
+            }
         } catch (err) {
             console.error('Failed to create book', err);
         } finally {
@@ -60,22 +110,29 @@ export default function AddBookModal({show, closeModal, onAdded}: AddBookModalPr
         }
     };
 
+    const initializeFields = async (book: Book) => {
+        const bookRecipes = recipes.filter((r) => r.book === book.id)
+        setName(book.name);
+        setAuthor(book.author ?? '');
+        setLinks(book.links ?? []);
+        setBookRecipesIds(bookRecipes.map(b => b.id));
+    }
+
     const resetFields = () => {
         setName('');
         setAuthor('');
         setLinks([]);
-        setBookRecipes([]);
+        setBookRecipesIds([]);
     }
 
     const handleCancel = () => {
-        resetFields();
         closeModal();
     }
 
     return (
         <Modal show={show} onHide={closeModal} centered>
             <Modal.Header closeButton>
-                <Modal.Title>{t('books.addBook')}</Modal.Title>
+                <Modal.Title>{mode === "edit" ? t("book.modal.edit") : t("book.modal.add")}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form>
@@ -153,7 +210,7 @@ export default function AddBookModal({show, closeModal, onAdded}: AddBookModalPr
                     {t('cancel')}
                 </Button>
                 <Button variant="primary" onClick={handleSubmit} disabled={saving || !name.trim()}>
-                    {t('submit')}
+                    {saving ? t("book.modal.submitting") : t("book.modal.save")}
                 </Button>
             </Modal.Footer>
         </Modal>

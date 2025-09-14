@@ -1,24 +1,27 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {BooksContext} from "../context/BooksContext.tsx";
-import {useContext, useEffect} from "react";
+import {useContext, useEffect, useState} from "react";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
-import {Card, Container, ListGroup} from "react-bootstrap";
+import {Button, Card, Container, ListGroup} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import AverageRating from "../components/AverageRating.tsx";
 import type {Recipe} from "../types/Recipe.ts";
 import {changeBook} from "../api/books.ts";
 import ReviewList from "../components/ReviewList.tsx";
 import {useAuth} from "../context/AuthContext.tsx";
+import AddEditBookModal from "../modal/AddEditBookModal.tsx";
 
 export default function BookDetail() {
     const {id} = useParams<{ id: string }>();
     const {recipes, reloadRecipes} = useContext(RecipeContext);
-    const {books, reloadBooks, updateBook} = useContext(BooksContext);
+    const {books, reloadBooks, addNewBook, updateBook} = useContext(BooksContext);
     const {reloadUsers} = useUsersContext();
     const {t} = useTranslation();
-    const navigate = useNavigate();
     const {user} = useAuth();
+    const navigate = useNavigate();
+
+    const [showEditBook, setShowEditBook] = useState(false);
 
     const book = books.find((b) => b.id === id);
 
@@ -28,7 +31,7 @@ export default function BookDetail() {
             reloadRecipes().then();
             reloadBooks().then();
         }
-    }, [id]);
+    }, [id, book]);
 
 
     if (!book) {
@@ -114,6 +117,14 @@ export default function BookDetail() {
                             updateBook(res);
                         }}
                     />
+                </Card.Body>
+                <Card.Body>
+                    <div className="text-start mt-4">
+                        <Button variant="secondary" onClick={() => setShowEditBook(true)}>
+                            {t("book.edit")}
+                        </Button>
+                    </div>
+                    <AddEditBookModal show={showEditBook} closeModal={() => setShowEditBook(false)} addBook={addNewBook} updateBook={updateBook} initialBook={book} mode="edit"/>
                 </Card.Body>
             </Card>
         </Container>
