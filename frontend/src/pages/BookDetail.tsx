@@ -1,9 +1,9 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {BooksContext} from "../context/BooksContext.tsx";
-import {useContext, useEffect, useState} from "react";
+import {type SetStateAction, useContext, useEffect, useState} from "react";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
-import {Button, Card, Container, ListGroup} from "react-bootstrap";
+import {Button, ButtonGroup, Card, Container, ListGroup} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import AverageRating from "../components/AverageRating.tsx";
 import type {Recipe} from "../types/Recipe.ts";
@@ -11,6 +11,7 @@ import {changeBook} from "../api/books.ts";
 import ReviewList from "../components/ReviewList.tsx";
 import {useAuth} from "../context/AuthContext.tsx";
 import AddEditBookModal from "../modal/AddEditBookModal.tsx";
+import {getButtonOutline, getInitialThumbnailSize, getThumbnailClass, popupImgStyles, popupStyles, thumbnailSizes, type ThumbnailSizeType} from "../helper/thumbnailHelper.ts";
 
 export default function BookDetail() {
     const {id} = useParams<{ id: string }>();
@@ -22,6 +23,8 @@ export default function BookDetail() {
     const navigate = useNavigate();
 
     const [showEditBook, setShowEditBook] = useState(false);
+    const [showImagePopup, setShowImagePopup] = useState(false);
+    const [thumbnailSize, setThumbnailSize] = useState<ThumbnailSizeType>('original');
 
     const book = books.find((b) => b.id === id);
 
@@ -33,6 +36,20 @@ export default function BookDetail() {
         }
     }, [id, book]);
 
+    useEffect(() => {
+        if (!book) {
+            setThumbnailSize(('original'));
+            return;
+        }
+        const img = new Image();
+        const src = `${book.thumbnail}`;
+        img.onload = () => {
+            const {naturalWidth, naturalHeight} = img;
+            const size = getInitialThumbnailSize(naturalWidth, naturalHeight);
+            setThumbnailSize(size);
+        }
+        img.src = src;
+    }, [book?.thumbnail]);
 
     if (!book) {
         return (
@@ -60,6 +77,47 @@ export default function BookDetail() {
                         </div>
                     </Card.Title>
                 </Card.Body>
+                {book.thumbnail ? (
+                    <>
+                        <div onClick={() => setShowImagePopup(true)} style={{cursor: 'zoom-in'}}>
+                            <Card.Img
+                                variant="top"
+                                src={book.thumbnail}
+                                alt={book.name}
+                                className={`img-fluid ${getThumbnailClass(thumbnailSize)}`}
+                            />
+                        </div>
+                        <ButtonGroup size="sm" className="mb-3">
+                            {thumbnailSizes.map(size => (
+                                <Button
+                                    key={size}
+                                    variant={thumbnailSize === size ? 'primary' : 'outline-secondary'}
+                                    onClick={() => setThumbnailSize(size as SetStateAction<ThumbnailSizeType>)}
+                                >
+                                    {size}
+                                </Button>
+                            ))}
+                        </ButtonGroup>
+                    </>
+                ) : (
+                    <div
+                        className="d-flex justify-content-center align-items-center bg-secondary"
+                        style={{height: "200px"}}
+                    >
+                        <Button variant={getButtonOutline()} onClick={() => setShowEditBook(true)}>
+                            {t("book.addThumbnail")}
+                        </Button>
+                    </div>
+                )}
+                {showImagePopup && (
+                    <div style={popupStyles(showImagePopup)} onClick={() => setShowImagePopup(false)}>
+                        <img
+                            src={book.thumbnail}
+                            alt={book.name}
+                            style={popupImgStyles}
+                        />
+                    </div>
+                )}
                 <Card.Body>
                     {book.author && (
                         <>

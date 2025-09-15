@@ -12,6 +12,7 @@ import {useFavorites} from "../context/FavoritesContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
 import {BooksContext} from "../context/BooksContext.tsx";
 import type {Book} from "../types/Book.ts";
+import {getButtonOutline, getInitialThumbnailSize, getThumbnailClass, popupImgStyles, popupStyles, thumbnailSizes, type ThumbnailSizeType} from "../helper/thumbnailHelper.ts";
 
 const RecipeDetail = () => {
     const {id} = useParams<{ id: string }>();
@@ -39,35 +40,7 @@ const RecipeDetail = () => {
         }
     }, [id]);
 
-    const [thumbnailSize, setThumbnailSize] = useState<'small' | 'medium' | 'large' | 'original'>('original');
-    const sizeClass = {
-        small: 'w-25',
-        medium: 'w-50',
-        large: 'w-75',
-        original: 'w-100'
-    }[thumbnailSize];
-
-    const popupStyles: React.CSSProperties = {
-        display: showImagePopup ? 'flex' : 'none',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'rgba(0,0,0,0.9)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1050,
-        cursor: 'zoom-out',
-    };
-
-    const popupImgStyles: React.CSSProperties = {
-        maxWidth: '90%',
-        maxHeight: '90%',
-        borderRadius: '8px',
-    };
-
-    const currentTheme = document.documentElement.getAttribute('data-bs-theme'); // "light" or "dark"
+    const [thumbnailSize, setThumbnailSize] = useState<ThumbnailSizeType>('original');
 
     const goToBook = (book: Book) => navigate(`/books/${book.id}`);
 
@@ -103,36 +76,6 @@ const RecipeDetail = () => {
         );
     }
 
-    function getInitialThumbnailSize(
-        naturalWidth: number,
-        naturalHeight: number,
-        containerWidth: number = 1000,
-        targetHeight: number = 550
-    ): 'small' | 'medium' | 'large' | 'original' {
-        const sizes = [
-            {name: 'small', scale: 0.25},
-            {name: 'medium', scale: 0.5},
-            {name: 'large', scale: 0.75},
-            {name: 'original', scale: 1},
-        ] as const;
-
-        let bestSize: "small" | "medium" | "large" | "original" = sizes[0].name;
-        let smallestDiff = Infinity;
-
-        for (const size of sizes) {
-            const scaledWidth = containerWidth * size.scale;
-            const estimatedHeight = (scaledWidth / naturalWidth) * naturalHeight;
-            const diff = Math.abs(estimatedHeight - targetHeight);
-
-            if (diff < smallestDiff) {
-                smallestDiff = diff;
-                bestSize = size.name;
-            }
-        }
-
-        return bestSize;
-    }
-
     return (
         <Container className="py-4">
             <Card className="mb-4">
@@ -165,15 +108,15 @@ const RecipeDetail = () => {
                                 variant="top"
                                 src={recipe.thumbnail}
                                 alt={recipe.name}
-                                className={`img-fluid ${sizeClass}`}
+                                className={`img-fluid ${getThumbnailClass(thumbnailSize)}`}
                             />
                         </div>
                         <ButtonGroup size="sm" className="mb-3">
-                            {['small', 'medium', 'large', 'original'].map(size => (
+                            {thumbnailSizes.map(size => (
                                 <Button
                                     key={size}
                                     variant={thumbnailSize === size ? 'primary' : 'outline-secondary'}
-                                    onClick={() => setThumbnailSize(size as SetStateAction<"small" | "medium" | "large" | "original">)}
+                                    onClick={() => setThumbnailSize(size as SetStateAction<ThumbnailSizeType>)}
                                 >
                                     {size}
                                 </Button>
@@ -185,13 +128,13 @@ const RecipeDetail = () => {
                         className="d-flex justify-content-center align-items-center bg-secondary"
                         style={{height: "200px"}}
                     >
-                        <Button variant={currentTheme === "dark" ? "outline-light" : "outline-dark"} onClick={() => setShowEditRecipe(true)}>
+                        <Button variant={getButtonOutline()} onClick={() => setShowEditRecipe(true)}>
                             {t("recipe.addThumbnail")}
                         </Button>
                     </div>
                 )}
                 {showImagePopup && (
-                    <div style={popupStyles} onClick={() => setShowImagePopup(false)}>
+                    <div style={popupStyles(showImagePopup)} onClick={() => setShowImagePopup(false)}>
                         <img
                             src={recipe.thumbnail}
                             alt={recipe.name}

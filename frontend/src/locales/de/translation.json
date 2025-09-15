@@ -26,6 +26,7 @@
     "recipes": "Rezepte",
     "links": "Links",
     "addAuthorHint": "Autor eingeben",
+    "addThumbnail": "Bild hinzufügen",
     "modal": {
       "add": "Buch hinzufügen",
       "edit": "Buch bearbeiten",

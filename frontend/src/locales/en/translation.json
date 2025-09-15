@@ -26,7 +26,8 @@
     "recipes": "Recipes",
     "links": "Links",
     "addAuthorHint": "add Author",
-    "modal": {
+        "addThumbnail": "add Image",
+"modal": {
       "add": "Add Book",
       "edit": "Edit Book",
       "submitting": "Saving...",
