@@ -52,6 +52,20 @@ export default function AllBooks() {
         }
     };
 
+    const bookRecipesCnt = (book: Book) => recipes.filter((r) => r.book === book.id).length;
+
+    type SortKey = "name" | "author" | "count";
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey, direction: "asc" | "desc" }>({key: "author", direction: "asc"});
+
+    const handleSort = (key: SortKey) => {
+        if (sortConfig.key === key) {
+            const newDirection = sortConfig.direction === "asc" ? "desc" : "asc";
+            setSortConfig({...sortConfig, direction: newDirection});
+        } else {
+            setSortConfig({...sortConfig, key: key});
+        }
+    }
+
     const groupedBooks = useMemo(() => {
         const groups: Record<string, Book[]> = {};
         const ungrouped: Book[] = [];
@@ -65,12 +79,84 @@ export default function AllBooks() {
             }
         });
 
-        return {groups, ungrouped};
-    }, [books]);
+        // Turn groups into sortable array
+        const groupEntries = Object.entries(groups); // [ [author, book[]], ... ]
+        groupEntries.sort(([authorA], [authorB]) => {
+            if (authorA < authorB) {
+                return sortConfig.direction === "asc" ? -1 : 1;
+            }
+            if (authorA > authorB) {
+                return sortConfig.direction === "asc" ? 1 : -1;
+            }
+            return 0;
+        });
+        ungrouped.sort((a: Book, b: Book) => {
+            const valA = a.name;
+            const valB = b.name;
+            if (valA < valB) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (valA > valB) {
+                return sortConfig.direction === "asc" ? 1 : -1;
+            }
+            return 0;
+        });
+
+        return {groups: groupEntries, ungrouped};
+    }, [books, sortConfig]);
+
+    const sortedBooks: Book[] = useMemo(() => {
+        if (sortConfig.key === "author") {
+            return [];
+        }
+        if (sortConfig.key === "count") {
+            return [...books].sort((a, b) => {
+                const valA = bookRecipesCnt(a);
+                const valB = bookRecipesCnt(b);
+
+                if (valA < valB) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (valA > valB) {
+                    return sortConfig.direction === "asc" ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        if (sortConfig.key === "name") {
+            return [...books].sort((a, b) => {
+                const valA = a.name;
+                const valB = b.name;
+
+                // Ensure they exist (or provide fallback)
+                if (valA === undefined) return 1;
+                if (valB === undefined) return -1;
+                if (valA < valB) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (valA > valB) {
+                    return sortConfig.direction === "asc" ? 1 : -1;
+                }
+                return 0;
+            });
+        } else {
+            return books;
+        }
+    }, [books, sortConfig]);
+
+    const renderSortIndicator = (column: SortKey) => {
+        if (sortConfig.key !== column) {
+            return <i className="bi bi-arrow-down-up text-muted"></i>;
+        }
+        return sortConfig.direction === "asc" ? (
+            <i className="bi bi-caret-up-fill"></i>
+        ) : (
+            <i className="bi bi-caret-down-fill"></i>
+        );
+    };
+
 
     const goToDetail = (book: Book) => navigate(`/books/${book.id}`);
-
-    const bookRecipesCnt = (book: Book) => recipes.filter((r) => r.book === book.id).length;
 
     const BookTableRow = (book: Book) => {
         return (
@@ -105,28 +191,34 @@ export default function AllBooks() {
             <Table striped hover responsive>
                 <thead>
                 <tr>
-                    <th style={{width: '45%'}} className="text-muted">{t("books.name")}</th>
-                    <th style={{width: '20%'}} className="text-muted d-none d-md-table-cell">{t("books.author")}</th>
-                    <th style={{width: '5%'}} className="text-muted d-none d-md-table-cell">{t("books.recipesCnt")}</th>
+                    <th style={{width: '45%'}} className="text-muted" onClick={() => handleSort("name")}>{t("books.name")} {renderSortIndicator("name")}</th>
+                    <th style={{width: '20%'}} className="text-muted d-none d-md-table-cell" onClick={() => handleSort("author")}>{t("books.author")} {renderSortIndicator("author")}</th>
+                    <th style={{width: '5%'}} className="text-muted text-nowrap d-none d-md-table-cell" onClick={() => handleSort("count")}>{t("books.recipesCnt")} {renderSortIndicator("count")}</th>
                     <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("books.avgRating")}</th>
                     <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("books.myRating")}</th>
                 </tr>
                 </thead>
                 <tbody>
-                {Object.entries(groupedBooks.groups).map(([, authorBooks]) => (
-                        authorBooks.map(book => (
-                                BookTableRow(book)
-                            )
-                        )
-                    )
+                {sortConfig.key === "author" ? (
+                    <>
+                        {groupedBooks.groups.map(([, authorBooks]) => (
+                            authorBooks.map(book => BookTableRow(book))
+                        ))}
+                        {groupedBooks.ungrouped.map((book) => (
+                            BookTableRow(book)
+                        ))}
+                    </>
+                ) : (
+                    <>
+                        {sortedBooks.map((book) => BookTableRow(book))}
+                    </>
                 )}
-                {groupedBooks.ungrouped.map((book) => (
-                    BookTableRow(book)
-                ))}
+
                 </tbody>
             </Table>
 
-            {/* Inline Add Form */}
+            {/* Inline Add Form */
+            }
             <Form className="mt-4">
                 <Form.Group className="d-flex align-items-center gap-2">
                     <Form.Label className="mb-0" htmlFor="new-book-input">
@@ -144,5 +236,6 @@ export default function AllBooks() {
                 </Form.Group>
             </Form>
         </Container>
-    );
+    )
+        ;
 }
