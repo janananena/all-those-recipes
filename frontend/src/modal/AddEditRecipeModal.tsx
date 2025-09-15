@@ -205,7 +205,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                     group: group.group ? group.group.trim() : "",
                     items: group.items.filter(item => item.name.trim() !== "")
                 }))
-                .filter(group => group.group !== "" && group.items.length > 0);
+                .filter(group => group.group !== "" || group.items.length > 0);
 
             const normalizedSteps = steps
                 .map(s => s.trim())
