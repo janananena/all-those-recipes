@@ -51,7 +51,8 @@
     "author": "Author",
     "recipesCnt": "#Recipes",
     "avgRating": "Average Rating",
-    "myRating": "My Rating"
+    "myRating": "My Rating",
+    "tags": "Tags"
   },
   "tags": {
     "name": "Name",

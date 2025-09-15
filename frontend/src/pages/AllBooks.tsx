@@ -1,6 +1,6 @@
 import {useContext, useEffect, useMemo, useState} from "react";
 import {BooksContext} from "../context/BooksContext.tsx";
-import {Container, Form, Table} from "react-bootstrap";
+import {Badge, Container, Form, Table} from "react-bootstrap";
 import {createBook} from "../api/books.ts";
 import {useTranslation} from "react-i18next";
 import AverageRating from "../components/AverageRating.tsx";
@@ -15,7 +15,7 @@ function sanitizeId(name: string): string {
 }
 
 export default function AllBooks() {
-    const {recipes, reloadRecipes} = useContext(RecipeContext);
+    const {recipes, reloadRecipes, tags, reloadTags} = useContext(RecipeContext);
     const {books, reloadBooks} = useContext(BooksContext);
     const [newBookInput, setNewBookInput] = useState("");
     const {user} = useAuth();
@@ -25,6 +25,7 @@ export default function AllBooks() {
     useEffect(() => {
         reloadRecipes().then();
         reloadBooks().then();
+        reloadTags().then();
     }, []);
 
     const handleAddBook = async () => {
@@ -161,7 +162,7 @@ export default function AllBooks() {
     const BookTableRow = (book: Book) => {
         return (
             <tr key={book.id} onClick={() => goToDetail(book)} style={{cursor: 'pointer'}}>
-                <td className="text-muted">
+                <td className="text-start text-muted">
                     <div>{book.name}</div>
                     {/* author below name on small screens */}
                     <div className="d-md-none mt-1 small text-muted">
@@ -170,6 +171,21 @@ export default function AllBooks() {
                 </td>
                 <td className="d-none d-md-table-cell text-muted">
                     {book.author}
+                </td>
+                <td>
+                    {book.tags?.map((tagId, index) => {
+                        const tag = tags.find(t => t.id === tagId);
+                        return (
+                            <Badge
+                                key={index}
+                                bg="secondary"
+                                className="me-1"
+                                style={{textTransform: 'capitalize'}}
+                            >
+                                {tag?.name}
+                            </Badge>
+                        );
+                    })}
                 </td>
                 <td className="text-nowrap text-muted">
                     {bookRecipesCnt(book).toString()}
@@ -191,8 +207,9 @@ export default function AllBooks() {
             <Table striped hover responsive>
                 <thead>
                 <tr>
-                    <th style={{width: '45%'}} className="text-muted" onClick={() => handleSort("name")}>{t("books.name")} {renderSortIndicator("name")}</th>
-                    <th style={{width: '20%'}} className="text-muted d-none d-md-table-cell" onClick={() => handleSort("author")}>{t("books.author")} {renderSortIndicator("author")}</th>
+                    <th style={{width: '45%'}} className="text-start text-muted" onClick={() => handleSort("name")}>{t("books.name")} {renderSortIndicator("name")}</th>
+                    <th style={{width: '10%'}} className="text-muted d-none d-md-table-cell" onClick={() => handleSort("author")}>{t("books.author")} {renderSortIndicator("author")}</th>
+                    <th style={{width: '10%'}} className="text-muted d-none d-md-table-cell">{t("books.tags")}</th>
                     <th style={{width: '5%'}} className="text-muted text-nowrap d-none d-md-table-cell" onClick={() => handleSort("count")}>{t("books.recipesCnt")} {renderSortIndicator("count")}</th>
                     <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("books.avgRating")}</th>
                     <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("books.myRating")}</th>
