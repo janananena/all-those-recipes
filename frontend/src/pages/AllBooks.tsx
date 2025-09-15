@@ -72,6 +72,31 @@ export default function AllBooks() {
 
     const bookRecipesCnt = (book: Book) => recipes.filter((r) => r.book === book.id).length;
 
+    const BookTableRow = (book: Book) => {
+        return (
+            <tr key={book.id} onClick={() => goToDetail(book)} style={{cursor: 'pointer'}}>
+                <td className="text-muted">
+                    <div>{book.name}</div>
+                    {/* author below name on small screens */}
+                    <div className="d-md-none mt-1 small text-muted">
+                        {book.author}
+                    </div>
+                </td>
+                <td className="d-none d-md-table-cell text-muted">
+                    {book.author}
+                </td>
+                <td className="text-nowrap text-muted">
+                    {bookRecipesCnt(book).toString()}
+                </td>
+                <td className="text-nowrap d-none d-md-table-cell">
+                    <AverageRating reviews={book.reviews || []}/>
+                </td>
+                <td className="text-nowrap d-none d-md-table-cell">
+                    <UserRating reviews={book.reviews || []} username={user ?? ' '}/>
+                </td>
+            </tr>);
+    };
+
     return (
         <Container className="py-4">
             <div className="d-flex justify-content-between align-items-center mb-3 text-muted">
@@ -88,50 +113,15 @@ export default function AllBooks() {
                 </tr>
                 </thead>
                 <tbody>
-                {Object.entries(groupedBooks.groups).map(([author, authorBooks]) => (
+                {Object.entries(groupedBooks.groups).map(([, authorBooks]) => (
                         authorBooks.map(book => (
-                                <tr key={book.id} onClick={() => goToDetail(book)} style={{cursor: 'pointer'}}>
-                                    <td className="text-muted">
-                                        <div>{book.name}</div>
-                                        {/* author below name on small screens */}
-                                        <div className="d-md-none mt-1 small text-muted">
-                                            {author}
-                                        </div>
-                                    </td>
-                                    <td className="d-none d-md-table-cell text-muted">
-                                        {author}
-                                    </td>
-                                    <td className="text-nowrap text-muted">
-                                        {bookRecipesCnt(book).toString()}
-                                    </td>
-                                    <td className="text-nowrap d-none d-md-table-cell">
-                                        <AverageRating reviews={book.reviews || []}/>
-                                    </td>
-                                    <td className="text-nowrap d-none d-md-table-cell">
-                                        <UserRating reviews={book.reviews || []} username={user ?? ' '}/>
-                                    </td>
-                                </tr>
+                                BookTableRow(book)
                             )
                         )
                     )
                 )}
                 {groupedBooks.ungrouped.map((book) => (
-                    <tr key={book.id} onClick={() => goToDetail(book)} style={{cursor: 'pointer'}}>
-                                    <td className="text-muted">
-                                        <div>{book.name}</div>
-                                    </td>
-                                    <td className="d-none d-md-table-cell">
-                                    </td>
-                                    <td>
-                                        {bookRecipesCnt(book)}
-                                    </td>
-                                    <td className="text-nowrap d-none d-md-table-cell">
-                                        <AverageRating reviews={book.reviews || []}/>
-                                    </td>
-                                    <td className="text-nowrap d-none d-md-table-cell">
-                                        <UserRating reviews={book.reviews || []} username={user ?? ' '}/>
-                                    </td>
-                                </tr>
+                    BookTableRow(book)
                 ))}
                 </tbody>
             </Table>
