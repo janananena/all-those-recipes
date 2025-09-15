@@ -2,7 +2,7 @@
 just another recipe management app for everyone collecting too many of them.
 
 ## All Recipes
-View all your recipes with their tags and ratings and quickly add or remove favorites
+View all your recipes with their tags and ratings, sort them, and quickly add or remove favorites
 ![table overview](imgs/recipes.png)
 
 Filter for tags or enter search queries
@@ -13,7 +13,7 @@ See and edit all parts of a recipe
 ![recipe details](imgs/recipe.png)
 
 ## All Tags
-Manage available tags, group them and decide which should be clickable in the recipe search
+Manage available tags, group them, and decide which should be clickable where in the recipe search
 ![tag overview](imgs/tags.png)
 
 ## All Users
@@ -26,3 +26,11 @@ Users can change their password themselves
 ## My Favorites
 Manage your personal favorites, comments and ratings. Sort them as you like
 ![my favorites](imgs/favs.png)
+
+## All Books
+Add books to collect recipes in them
+![book overview](imgs/books.png)
+
+## Book Details
+See and edit all parts of a book
+![book details](imgs/book.png)
