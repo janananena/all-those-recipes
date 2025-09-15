@@ -26,14 +26,15 @@
     "recipes": "Recipes",
     "links": "Links",
     "addAuthorHint": "add Author",
-        "addThumbnail": "add Image",
-"modal": {
+    "addThumbnail": "add Image",
+    "modal": {
       "add": "Add Book",
       "edit": "Edit Book",
       "submitting": "Saving...",
       "save": "Save book",
       "addLink": "add Link",
-      "recipesHint": "choose Recipes"
+      "recipesHint": "choose Recipes",
+      "thumbnail": "Image"
     }
   },
   "books": {

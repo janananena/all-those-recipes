@@ -1,5 +1,5 @@
-import {useContext, useEffect, useState} from 'react';
-import {Button, Form, Modal} from 'react-bootstrap';
+import {useContext, useEffect, useRef, useState} from 'react';
+import {Button, Form, InputGroup, Modal} from 'react-bootstrap';
 import Select, {type ActionMeta, type MultiValue} from 'react-select';
 import {useTranslation} from 'react-i18next';
 import type {Tag} from "../types/Tag.ts";
@@ -7,7 +7,7 @@ import {changeBook, createBook} from "../api/books.ts";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import {customStyles, customTheme, type SelectOptionType} from "../helper/reactSelectHelper.ts";
 import type {Book} from "../types/Book.ts";
-import {changeRecipe} from "../api/recipes.ts";
+import {changeRecipe, uploadImage} from "../api/recipes.ts";
 
 interface AddBookModalProps {
     show: boolean;
@@ -26,6 +26,10 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
     const [links, setLinks] = useState<string[]>([]);
     const [bookRecipesIds, setBookRecipesIds] = useState<string[]>([]);
     const [saving, setSaving] = useState(false);
+
+    const [thumbnail, setThumbnail] = useState<File | null>(null);
+    const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
+    const [thumbnailPath, setThumbnailPath] = useState("");
 
     const {t} = useTranslation();
 
@@ -46,25 +50,25 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
 
     const handleChangeRecipes = async (_newValue: MultiValue<SelectOptionType>, actionMeta: ActionMeta<SelectOptionType>) => {
         const id = initialBook?.id ?? name.trim().toLowerCase().replace(/\s+/g, '-');
-        if(id === undefined || id === ''){
+        if (id === undefined || id === '') {
             return;
         }
-        if (actionMeta.action === "select-option"){
+        if (actionMeta.action === "select-option") {
             const newRecipeId = actionMeta?.option?.value;
             const selectedRecipe = recipes.find(r => r.id === newRecipeId);
-            if (selectedRecipe === undefined || newRecipeId === undefined){
+            if (selectedRecipe === undefined || newRecipeId === undefined) {
                 return;
             }
             const res = await changeRecipe({...selectedRecipe, book: id});
             updateRecipe(res);
             setBookRecipesIds([...bookRecipesIds, newRecipeId]);
-        } else if (["deselect-option", "remove-value", "pop-value"].includes(actionMeta.action)){
+        } else if (["deselect-option", "remove-value", "pop-value"].includes(actionMeta.action)) {
             const removedRecipeId = actionMeta?.removedValue?.value;
             const removedRecipe = recipes.find(r => r.id === removedRecipeId);
-            if (removedRecipe === undefined || removedRecipeId === undefined){
+            if (removedRecipe === undefined || removedRecipeId === undefined) {
                 return;
             }
-             const res = await changeRecipe({...removedRecipe, book: undefined});
+            const res = await changeRecipe({...removedRecipe, book: undefined});
             updateRecipe(res);
             setBookRecipesIds(bookRecipesIds.filter(r => r !== removedRecipeId));
         }
@@ -74,6 +78,11 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         if (!name.trim()) return;
         setSaving(true);
         try {
+            let uploadedThumbnailPath = thumbnailPath;
+            if (thumbnail) {
+                uploadedThumbnailPath = await uploadImage(thumbnail);
+                setThumbnailPath(uploadedThumbnailPath);
+            }
             const normalizedLinks = links
                 .map(link => link.trim())
                 .filter(link => link !== "")
@@ -84,6 +93,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                 name: name.trim() ?? '',
                 author: author.trim() ?? '',
                 links: normalizedLinks.length ? normalizedLinks : undefined,
+                thumbnail: uploadedThumbnailPath,
             }
 
             if (mode === "add") {
@@ -116,6 +126,8 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         setAuthor(book.author ?? '');
         setLinks(book.links ?? []);
         setBookRecipesIds(bookRecipes.map(b => b.id));
+        setThumbnail(null);
+        setThumbnailPath(book.thumbnail ?? "");
     }
 
     const resetFields = () => {
@@ -123,6 +135,8 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         setAuthor('');
         setLinks([]);
         setBookRecipesIds([]);
+        setThumbnail(null);
+        setThumbnailPath('');
     }
 
     const handleCancel = () => {
@@ -153,7 +167,29 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                             onChange={(e) => setAuthor(e.target.value)}
                         />
                     </Form.Group>
-
+                    <Form.Group controlId="bookThumbnail" className="mb-2">
+                        <Form.Label>{t("book.modal.thumbnail")}</Form.Label>
+                        <InputGroup>
+                            <Form.Control
+                                type="file"
+                                onChange={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    setThumbnail(input.files?.[0] ?? null)
+                                }}
+                                ref={thumbnailInputRef}
+                            />
+                            {thumbnail && (
+                                <Button variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => {
+                                            setThumbnail(null);
+                                            thumbnailInputRef.current!.value = '';
+                                        }}>
+                                    <i className="bi bi-trash"></i>
+                                </Button>
+                            )}
+                        </InputGroup>
+                    </Form.Group>
                     <Form.Group controlId="bookLinks" className="mb-3">
                         <div>
                             <Form.Label>{t("book.links")}</Form.Label>

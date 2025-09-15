@@ -33,7 +33,8 @@
       "submitting": "Speichern...",
       "save": "Buch speichern",
       "addLink": "Link hinzufügen",
-      "recipesHint": "Rezepte auswählen"
+      "recipesHint": "Rezepte auswählen",
+      "thumbnail": "Bild"
     }
   },
   "books": {
