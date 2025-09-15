@@ -142,56 +142,13 @@ const RecipeDetail = () => {
                         />
                     </div>
                 )}
+
                 <Card.Body>
                     <Row>
-                        {/* Left Column */}
-                        <Col md={8}>
-                            {recipe.ingredients && recipe.ingredients.length > 0 && (
-                                <>
-                                    <h4>{t("recipe.ingredients")}</h4>
-                                    <ListGroup className="mb-4">
-                                        {recipe.ingredients.map((group, idx) => (
-                                            <div key={idx}>
-                                                {group.group && <h6 className="mt-3">{group.group}</h6>}
-                                                {group.items.map((ingredient, i) => (
-                                                    <ListGroup.Item key={i}>
-                                                        {ingredient.amount} {ingredient.name}
-                                                    </ListGroup.Item>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </ListGroup>
-                                </>
-                            )}
-
-                            {recipe.steps && recipe.steps.length > 0 && (
-                                <>
-                                    <h4>{t("recipe.steps")}</h4>
-                                    <ListGroup numbered className="mb-4">
-                                        {recipe.steps.map((step, i) => (
-                                            <ListGroup.Item key={i}>{step}</ListGroup.Item>
-                                        ))}
-                                    </ListGroup>
-                                </>
-                            )}
-
-                            {recipeBook && (
-                                <>
-                                    <h4>{t('recipe.book')}</h4>
-                                    <div
-                                        role="button"
-                                        className="text-primary mb-2"
-                                        style={{cursor: "pointer"}}
-                                        onClick={() => goToBook(recipeBook)}
-                                    >
-                                        {recipeBook.name}
-                                    </div>
-                                </>
-                            )}
-
+                        <Col>
                             {recipe.tags && recipe.tags.length > 0 && (
                                 <>
-                                    <h4>{t("recipe.tags")}</h4>
+                                    <Card.Subtitle className="text-start mb-2">{t("recipe.tags")}</Card.Subtitle>
                                     <Stack direction="horizontal" gap={2} className="flex-wrap mb-4">
                                         {recipe.tags
                                             .map(tagId => tags.find(t => t.id === tagId))
@@ -204,75 +161,132 @@ const RecipeDetail = () => {
                                     </Stack>
                                 </>
                             )}
-
-                            {recipe.links && recipe.links.length > 0 && (
-                                <>
-                                    <h4>{t("recipe.links")}</h4>
-                                    <ListGroup className="mb-4">
-                                        {recipe.links.map((link, i) => (
-                                            <ListGroup.Item
-                                                key={i}
-                                                action
-                                                href={link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {link}
-                                            </ListGroup.Item>
-                                        ))}
-                                    </ListGroup>
-                                </>
-                            )}
-
-                            {recipe.files?.length && (
-                                <>
-                                    <h4>{t("recipe.files")}</h4>
-                                    <ListGroup>
-                                        {recipe.files.map((file, i) => {
-                                            if (!file.fileUrl) return null;
-                                            return (
-                                                <ListGroup.Item key={`file-${i}`}>
-                                                    <a href={`/${file.fileUrl}`} download>
-                                                        {file.fileUrl}
-                                                    </a>
-                                                </ListGroup.Item>
-                                            );
-                                        })}
-                                    </ListGroup>
-                                </>
-                            )}
                         </Col>
-
-                        {/* Right Column */}
-                        <Col md={4}>
-                            <ReviewList
-                                reviews={recipe.reviews || []}
-                                username={user ?? ''}
-                                onUpdate={async (updated) => {
-                                    const rest = (recipe.reviews || []).filter(r => r.username !== updated.username);
-                                    const updatedRecipe = {...recipe, reviews: [...rest, updated]};
-                                    const res = await changeRecipe(updatedRecipe);
-                                    updateRecipe(res);
-                                }}
-                            />
+                        <Col>
+                            {recipeBook && (
+                                <>
+                                    <Card.Subtitle className="text-start mb-2">{t('recipe.book')}</Card.Subtitle>
+                                    <div
+                                        role="button"
+                                        className="text-start text-primary mb-2"
+                                        style={{cursor: "pointer"}}
+                                        onClick={() => goToBook(recipeBook)}
+                                    >
+                                        {recipeBook.name}
+                                    </div>
+                                </>
+                            )}
                         </Col>
                     </Row>
+                </Card.Body>
 
-                    <div className="mt-4">
+                <Card.Body>
+                    <Row>
+                        {recipe.ingredients && recipe.ingredients.length > 0 && (
+                            <Col>
+                                <Card.Subtitle className="text-start mb-2">{t("recipe.ingredients")}</Card.Subtitle>
+                                <ListGroup className="mb-4">
+                                    {recipe.ingredients.map((group, idx) => (
+                                        <div key={idx}>
+                                            {group.group && <h6 className="text-start mt-3">{group.group}</h6>}
+                                            {group.items.map((ingredient, i) => (
+                                                <ListGroup.Item key={i}>
+                                                    {ingredient.amount} {ingredient.name}
+                                                </ListGroup.Item>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </ListGroup>
+                            </Col>
+                        )}
+                        {recipe.steps && recipe.steps.length > 0 && (
+                            <Col>
+                                <Card.Subtitle className="text-start mb-2">{t("recipe.steps")}</Card.Subtitle>
+                                <ListGroup numbered className="mb-4">
+                                    {recipe.steps.map((step, i) => (
+                                        <ListGroup.Item key={i}>{step}</ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            </Col>
+                        )}
+                    </Row>
+                </Card.Body>
+
+                <Card.Body>
+                    {recipe.links && recipe.links.length > 0 && (
+                        <>
+                            <Card.Subtitle className="text-start mb-2">{t("recipe.links")}</Card.Subtitle>
+                            <ListGroup className="mb-4">
+                                {recipe.links.map((link, i) => (
+                                    <ListGroup.Item
+                                        key={i}
+                                        action
+                                        href={link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {link}
+                                    </ListGroup.Item>
+                                ))}
+                            </ListGroup>
+                        </>
+                    )}
+                </Card.Body>
+
+                <Card.Body>
+                    {recipe.files?.length && (
+                        <>
+                            <Card.Subtitle className="text-start mb-2">{t("recipe.files")}</Card.Subtitle>
+                            <ListGroup>
+                                {recipe.files.map((file, i) => {
+                                    if (!file.fileUrl) return null;
+                                    // Extract just the filename (without path and extension)
+                                    const fileName = file.fileUrl
+                                        .split('/').pop()!                // "1757936365845-Screenshot-from-2024-12-27-23-38-07.png"
+                                        .replace(/^\d+-/, '')             // remove leading numbers + dash
+                                        .replace(/\.[^/.]+$/, '');        // remove extension
+                                    return (
+                                        <ListGroup.Item key={`file-${i}`}>
+                                            <a href={`/${file.fileUrl}`} download>
+                                                {fileName}
+                                            </a>
+                                        </ListGroup.Item>
+                                    );
+                                })}
+                            </ListGroup>
+                        </>
+                    )}
+                </Card.Body>
+
+                <Card.Body>
+                    <ReviewList
+                        reviews={recipe.reviews || []}
+                        username={user ?? ''}
+                        onUpdate={async (updated) => {
+                            const rest = (recipe.reviews || []).filter(r => r.username !== updated.username);
+                            const updatedRecipe = {...recipe, reviews: [...rest, updated]};
+                            const res = await changeRecipe(updatedRecipe);
+                            updateRecipe(res);
+                        }}
+                    />
+                </Card.Body>
+
+                <Card.Body>
+                    <div className="text-start mt-4">
                         <Button variant="secondary"
                                 onClick={() => setShowEditRecipe(true)}
                         >{t("recipe.edit")}</Button>
                     </div>
+                    <AddEditRecipeModal
+                        show={showEditRecipe}
+                        onClose={() => setShowEditRecipe(false)}
+                        addRecipe={addNewRecipe}
+                        updateRecipe={updateRecipe}
+                        mode="edit"
+                        initialRecipe={recipe}
+                    />
                 </Card.Body>
             </Card>
-            <AddEditRecipeModal
-                show={showEditRecipe}
-                onClose={() => setShowEditRecipe(false)}
-                addRecipe={addNewRecipe}
-                updateRecipe={updateRecipe}
-                mode="edit"
-                initialRecipe={recipe}
-            />
         </Container>
     );
 };
