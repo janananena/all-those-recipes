@@ -1,5 +1,5 @@
 import axios from "axios";
-import type {NewRecipe, Recipe} from "../types/Recipe";
+import type {Recipe} from "../types/Recipe";
 
 const apiBaseUrl = `/api`;
 
@@ -8,7 +8,7 @@ export const fetchRecipes = async (): Promise<Recipe[]> => {
     return res.data;
 };
 
-export async function createRecipe(recipe: NewRecipe): Promise<Recipe> {
+export async function createRecipe(recipe: Recipe): Promise<Recipe> {
     const headers = {headers: {'Content-Type': 'application/json'}};
     const response = await axios.post(`${apiBaseUrl}/recipes/`, recipe, headers);
     console.log(`added recipe w/ id ${response.data.id}: `, recipe);

@@ -230,7 +230,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                 await initializeFields(res);
                 handleClose();
             } else {
-                const res = await createRecipe(newRecipe);
+                const res = await createRecipe({...newRecipe, id: sanitizeId(name)});
                 addRecipe(res);
                 resetFields();
                 handleClose();
