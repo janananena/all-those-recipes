@@ -93,6 +93,9 @@
     "myComment": "Your Comment...",
     "noFavorites": "You did not save any favorites yet.",
     "removedFromFavorites": "Removed from favorites.",
+    "deleteConfirmation": "Are you sure you want to delete {{recipeName}}?",
+    "deleted": "Recipe {{recipeName}} deleted!",
+    "delete": "Delete",
     "modal": {
       "edit": "Edit Recipe",
       "add": "Add New Recipe",

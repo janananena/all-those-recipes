@@ -1,23 +1,45 @@
 import {useContext, useEffect, useMemo, useState} from "react";
-import {Container} from "react-bootstrap";
+import {Container, Toast, ToastContainer} from "react-bootstrap";
 import type {Recipe} from "../types/Recipe";
 import type {SearchTag} from "../types/SearchTag";
 import TagSelector from "../components/TagSelector";
 import SearchBar from "../components/SearchBar";
 import RecipeTable from "../components/RecipeTable";
-import {useNavigate, useSearchParams} from "react-router-dom";
+import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import {RecipeContext} from "../context/RecipeContext";
 import {useFavorites} from "../context/FavoritesContext.tsx";
 import {BooksContext} from "../context/BooksContext.tsx";
+import {useTranslation} from "react-i18next";
+import {createRecipe} from "../api/recipes.ts";
 
 export const AllRecipes = () => {
-    const {recipes, reloadRecipes, reloadTags} = useContext(RecipeContext);
+    const location = useLocation();
+    const deletedRecipe = location.state?.deletedRecipe;
+    const [undoData, setUndoData] = useState<Recipe|null>(deletedRecipe);
+
+    const {recipes, reloadRecipes, reloadTags, addNewRecipe} = useContext(RecipeContext);
     const {reloadFavorites} = useFavorites();
     const {reloadBooks} = useContext(BooksContext);
     const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const {t} = useTranslation();
+
+    const [showToast, setShowToast] = useState<boolean>(!!undoData);
+
+    const handleUndo = async () => {
+        if (undoData) {
+            console.log(`undorecipe: ${undoData.id}: `, undoData);
+            const res = await createRecipe(undoData);
+            addNewRecipe(res);
+            reloadRecipes();
+            setUndoData(null);
+        }
+        setShowToast(false);
+        //remove toast for next reload
+        navigate('/recipes', {replace: true});
+    };
 
     useEffect(() => {
         reloadRecipes().then();
@@ -89,6 +111,20 @@ export const AllRecipes = () => {
             <TagSelector searchTags={searchTags} onSelect={addSearchTag} onClear={clearSearchTags}/>
             <SearchBar searchTags={searchTags} onAdd={addSearchTag} onRemove={removeSearchTag}/>
             <RecipeTable recipes={filteredRecipes} onSelect={goToDetail}/>
+            {undoData && <ToastContainer key={`toast-container-${undoData.id}`} position="top-end" className="mb-3">
+                <Toast key={`toast-${undoData.id}`} onClose={() => setShowToast(false)} show={showToast} bg="secondary" delay={6000} autohide>
+                    <Toast.Body key={`toast-body-${undoData.id}`} className="d-flex justify-content-between align-items-center">
+                        <span>{t("recipe.deleted", {recipeName: undoData.name})}</span>
+                        <button
+                            key={`toast-button-${undoData.id}`}
+                            className="btn btn-link p-0 ms-3 text-decoration-none"
+                            onClick={handleUndo}
+                        >
+                            {t("undo")}
+                        </button>
+                    </Toast.Body>
+                </Toast>
+            </ToastContainer>}
         </Container>
     );
 };

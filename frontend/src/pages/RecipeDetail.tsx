@@ -6,7 +6,7 @@ import AddEditRecipeModal from "../modal/AddEditRecipeModal.tsx";
 import {useTranslation} from "react-i18next";
 import {useAuth} from "../context/AuthContext.tsx";
 import AverageRating from "../components/AverageRating.tsx";
-import {changeRecipe} from "../api/recipes.ts";
+import {changeRecipe, removeRecipe} from "../api/recipes.ts";
 import ReviewList from "../components/ReviewList.tsx";
 import {useFavorites} from "../context/FavoritesContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
@@ -16,7 +16,7 @@ import {getButtonOutline, getInitialThumbnailSize, getThumbnailClass, popupImgSt
 
 const RecipeDetail = () => {
     const {id} = useParams<{ id: string }>();
-    const {recipes, tags, updateRecipe, addNewRecipe, reloadRecipes, reloadTags} = useContext(RecipeContext);
+    const {recipes, tags, updateRecipe, addNewRecipe, reloadRecipes, reloadTags, eraseRecipe} = useContext(RecipeContext);
     const {getFavorite, flipFavorite} = useFavorites();
     const [isFavorite, setIsFavorite] = useState(false);
     const {reloadUsers} = useUsersContext();
@@ -67,6 +67,21 @@ const RecipeDetail = () => {
             console.log(`isFavorite: result: ${result}, user: ${user}, recipeId: ${recipe.id}`);
         });
     }, [user, id]);
+
+    const deleteRecipe = async () => {
+        if (!recipe) return;
+        if (!window.confirm(t("recipe.deleteConfirmation", {recipeName: recipe.name}))) return;
+        try {
+            const res = await removeRecipe(recipe.id);
+            eraseRecipe(res);
+            navigate("/recipes", {
+                state: {deletedRecipe: recipe}
+            });
+            window.scrollTo(0, 0);
+        } catch (err) {
+            console.error("Failed to delete recipe", err);
+        }
+    }
 
     if (!recipe) {
         return (
@@ -268,11 +283,20 @@ const RecipeDetail = () => {
                 </Card.Body>
 
                 <Card.Body>
-                    <div className="text-start mt-4">
-                        <Button variant="secondary"
-                                onClick={() => setShowEditRecipe(true)}
-                        >{t("recipe.edit")}</Button>
-                    </div>
+                    <Row className="mt-4 justify-content-between">
+                        <Col xs="auto" className="text-start">
+                            <Button variant="secondary"
+                                    onClick={() => setShowEditRecipe(true)}>
+                                {t("recipe.edit")}
+                            </Button>
+                        </Col>
+                        <Col xs="auto" className="text-end">
+                            <Button variant="danger"
+                                    onClick={() => deleteRecipe()}>
+                                {t("recipe.delete")}
+                            </Button>
+                        </Col>
+                    </Row>
                     <AddEditRecipeModal
                         show={showEditRecipe}
                         onClose={() => setShowEditRecipe(false)}

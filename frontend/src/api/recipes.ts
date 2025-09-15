@@ -22,6 +22,12 @@ export async function changeRecipe(recipe: Recipe): Promise<Recipe> {
     return response.data;
 }
 
+export async function removeRecipe(recipeId: string): Promise<Recipe> {
+    const response = await axios.delete(`${apiBaseUrl}/recipes/${recipeId}`);
+    console.log(`deleted recipe w/ id ${recipeId}`);
+    return response.data;
+}
+
 export async function uploadImage(image: File): Promise<string> {
     const headers = {headers: {'Content-Type': 'multipart/form-data'}};
     const formData = new FormData();

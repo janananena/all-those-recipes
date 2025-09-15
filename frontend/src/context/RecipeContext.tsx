@@ -11,6 +11,7 @@ interface RecipeContextType {
     setRecipes: React.Dispatch<React.SetStateAction<Recipe[]>>;
     addNewRecipe: (recipe: Recipe) => void;
     updateRecipe: (recipe:Recipe) => void;
+    eraseRecipe: (recipe:Recipe) => void;
     tags: Tag[];
     setTags: React.Dispatch<React.SetStateAction<Tag[]>>;
     reloadTags: () => Promise<void>;
@@ -23,6 +24,7 @@ export const RecipeContext = createContext<RecipeContextType>({
     setRecipes: () => {},
     addNewRecipe: () => {},
     updateRecipe: () => {},
+    eraseRecipe: () => {},
     tags: [],
     setTags: () => {},
     reloadTags: () => new Promise<void>(()=>{}),
@@ -51,6 +53,10 @@ export const RecipeProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setRecipes(recipes.map((r) => r.id === recipe.id ? recipe : r));
     }
 
+    function eraseRecipe(recipe: Recipe): void {
+        setRecipes(recipes.filter(r => r.id !== recipe.id));
+    }
+
     const reloadTags = async () => {
         try {
             const data = await fetchTags();
@@ -66,7 +72,7 @@ export const RecipeProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
 
     return (
-        <RecipeContext.Provider value={{ recipes, reloadRecipes, setRecipes, addNewRecipe, updateRecipe, tags, setTags, reloadTags, addNewTag }}>
+        <RecipeContext.Provider value={{ recipes, reloadRecipes, setRecipes, addNewRecipe, updateRecipe, eraseRecipe, tags, setTags, reloadTags, addNewTag }}>
             {children}
         </RecipeContext.Provider>
     );

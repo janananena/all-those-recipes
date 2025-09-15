@@ -93,6 +93,9 @@
     "myComment": "Dein Kommentar...",
     "noFavorites": "Du hast noch keine Favoriten gespeichert.",
     "removedFromFavorites": "Aus Favoriten entfernt.",
+    "deleteConfirmation": "Sicher, dass {{recipeName}} gelöscht werden soll?",
+    "deleted": "Rezept {{recipeName}} gelöscht!",
+    "delete": "Löschen",
     "modal": {
       "edit": "Rezept bearbeiten",
       "add": "Neues Rezept hinzufügen",
