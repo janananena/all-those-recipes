@@ -31,11 +31,14 @@
     "modal": {
       "add": "Buch hinzufügen",
       "edit": "Buch bearbeiten",
+      "files": "Dateien",
+      "links": "Links",
       "submitting": "Speichern...",
       "save": "Buch speichern",
       "addLink": "Link hinzufügen",
       "recipesHint": "Rezepte auswählen",
-      "thumbnail": "Bild"
+      "thumbnail": "Bild",
+      "recipes": "Rezepte"
     }
   },
   "books": {

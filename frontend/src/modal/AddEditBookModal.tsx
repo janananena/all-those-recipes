@@ -7,7 +7,9 @@ import {changeBook, createBook} from "../api/books.ts";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import {customStyles, customTheme, type SelectOptionType} from "../helper/reactSelectHelper.ts";
 import type {Book} from "../types/Book.ts";
-import {changeRecipe, uploadImage} from "../api/recipes.ts";
+import {changeRecipe, uploadFile, uploadImage} from "../api/recipes.ts";
+import type {ExtFile} from "../types/Recipe.ts";
+import {AxiosError} from 'axios';
 
 interface AddBookModalProps {
     show: boolean;
@@ -30,6 +32,10 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
     const [thumbnail, setThumbnail] = useState<File | null>(null);
     const thumbnailInputRef = useRef<HTMLInputElement | null>(null);
     const [thumbnailPath, setThumbnailPath] = useState("");
+
+    const [initialBookFiles, setinitialBookFiles] = useState<File[]>([]);
+    const [files, setFiles] = useState<File[]>([]);
+    const [fileObjects, setFileObjects] = useState<ExtFile[]>([]);
 
     const {t} = useTranslation();
 
@@ -74,60 +80,101 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         }
     }
 
-    const handleSubmit = async () => {
-        if (!name.trim()) return;
-        setSaving(true);
-        try {
-            let uploadedThumbnailPath = thumbnailPath;
-            if (thumbnail) {
-                uploadedThumbnailPath = await uploadImage(thumbnail);
-                setThumbnailPath(uploadedThumbnailPath);
-            }
-            const normalizedLinks = links
-                .map(link => link.trim())
-                .filter(link => link !== "")
-                .map(link =>
-                    /^(https?:)?\/\//i.test(link) ? link : `https://${link}`
-                );
-            const newBook = {
-                name: name.trim() ?? '',
-                author: author.trim() ?? '',
-                links: normalizedLinks.length ? normalizedLinks : undefined,
-                thumbnail: uploadedThumbnailPath,
-            }
+    async function urlsToFiles(urls: string[]): Promise<File[]> {
+        const files = await Promise.all(
+            urls.map(async (url) => {
+                const response = await fetch(`${url}`);
+                const blob = await response.blob();
 
-            if (mode === "add") {
-                const newBook2 = await createBook({
-                    ...newBook,
-                    id: name.trim().toLowerCase().replace(/\s+/g, '-')
-                });
-                addBook(newBook2);
-                resetFields();
-                closeModal();
-            } else if (mode === "edit" && initialBook?.id) {
-                const changedBook = await changeBook({
-                    ...newBook,
-                    id: initialBook.id
-                });
-                updateBook(changedBook);
-                await initializeFields(changedBook);
-                closeModal();
+                const filename = url.split('/').pop() || 'downloaded-file';
+                const fileType = blob.type || 'application/octet-stream';
+
+                return new File([blob], filename, {type: fileType});
+            })
+        );
+
+        return files;
+    }
+
+    const handleSubmit = async () => {
+            if (!name.trim()) return;
+            setSaving(true);
+            try {
+                let uploadedThumbnailPath = thumbnailPath;
+                if (thumbnail) {
+                    uploadedThumbnailPath = await uploadImage(thumbnail);
+                    setThumbnailPath(uploadedThumbnailPath);
+                }
+
+                const uploadedFiles: ExtFile[] = [...fileObjects];
+                for (const file of files) {
+                    if (!initialBookFiles.includes(file)) {
+                        const res = await uploadFile(file);
+                        uploadedFiles.push({fileUrl: res});
+
+                    }
+                }
+                setFileObjects(uploadedFiles);
+                // do not reupload
+                setinitialBookFiles(files);
+
+                const normalizedLinks = links
+                    .map(link => link.trim())
+                    .filter(link => link !== "")
+                    .map(link =>
+                        /^(https?:)?\/\//i.test(link) ? link : `https://${link}`
+                    );
+                const newBook = {
+                    name: name.trim() ?? '',
+                    author: author.trim() ?? '',
+                    links: normalizedLinks.length ? normalizedLinks : undefined,
+                    thumbnail: uploadedThumbnailPath,
+                    files: uploadedFiles.length ? uploadedFiles : undefined,
+                }
+
+                if (mode === "add") {
+                    const newBook2 = await createBook({
+                        ...newBook,
+                        id: name.trim().toLowerCase().replace(/\s+/g, '-')
+                    });
+                    addBook(newBook2);
+                    resetFields();
+                    closeModal();
+                } else if (mode === "edit" && initialBook?.id) {
+                    const changedBook = await changeBook({
+                        ...newBook,
+                        id: initialBook.id
+                    });
+                    updateBook(changedBook);
+                    await initializeFields(changedBook);
+                    closeModal();
+                }
+            } catch (err) {
+                if (err instanceof AxiosError && err.response?.data) {
+                    console.error("Backend error response:", err.response.data);
+                    const backendErrors = err.response.data.errors;
+                    if (Array.isArray(backendErrors)) backendErrors.forEach((err) => console.error("Validation error: ", err));
+                } else {
+                    console.error('Failed to create book', err);
+                }
+            } finally {
+                setSaving(false);
             }
-        } catch (err) {
-            console.error('Failed to create book', err);
-        } finally {
-            setSaving(false);
         }
-    };
+    ;
 
     const initializeFields = async (book: Book) => {
         const bookRecipes = recipes.filter((r) => r.book === book.id)
+        const bookFiles = await urlsToFiles(book.files?.map(f => f.fileUrl) ?? []);
         setName(book.name);
         setAuthor(book.author ?? '');
         setLinks(book.links ?? []);
         setBookRecipesIds(bookRecipes.map(b => b.id));
         setThumbnail(null);
         setThumbnailPath(book.thumbnail ?? "");
+        setFiles(bookFiles);
+        setinitialBookFiles(bookFiles);
+        setFileObjects(book.files ?? []);
     }
 
     const resetFields = () => {
@@ -137,6 +184,9 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         setBookRecipesIds([]);
         setThumbnail(null);
         setThumbnailPath('');
+        setFiles([]);
+        setinitialBookFiles([]);
+        setFileObjects([]);
     }
 
     const handleCancel = () => {
@@ -167,7 +217,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                             onChange={(e) => setAuthor(e.target.value)}
                         />
                     </Form.Group>
-                    <Form.Group controlId="bookThumbnail" className="mb-2">
+                    <Form.Group controlId="bookThumbnail" className="mb-3">
                         <Form.Label>{t("book.modal.thumbnail")}</Form.Label>
                         <InputGroup>
                             <Form.Control
@@ -190,9 +240,22 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                             )}
                         </InputGroup>
                     </Form.Group>
+                    <Form.Group controlId="bookRecipes" className="mb-3">
+                        <Form.Label>{t("book.modal.recipes")}</Form.Label>
+                        <Select isMulti
+                                name="bookRecipes"
+                                value={selectedRecipeOptions}
+                                options={allRecipeOptions}
+                                onChange={handleChangeRecipes}
+                                placeholder={t("book.modal.recipesHint")}
+                                theme={customTheme()}
+                                styles={customStyles(true)}
+                        />
+                    </Form.Group>
+
                     <Form.Group controlId="bookLinks" className="mb-3">
                         <div>
-                            <Form.Label>{t("book.links")}</Form.Label>
+                            <Form.Label>{t("book.modal.links")}</Form.Label>
                             {links.map((link, index) => (
                                 <div key={index} className="d-flex align-items-center gap-2 mb-2">
                                     <Form.Control
@@ -228,16 +291,49 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                         </Button>
                     </Form.Group>
 
-                    <Form.Group>
-                        <Select isMulti
-                                name="bookRecipes"
-                                value={selectedRecipeOptions}
-                                options={allRecipeOptions}
-                                onChange={handleChangeRecipes}
-                                placeholder={t("book.modal.recipesHint")}
-                                theme={customTheme()}
-                                styles={customStyles(true)}
+                    <Form.Group controlId="bookFiles" className="mb-2">
+                        <Form.Label>{t("book.modal.files")}</Form.Label>
+                        <Form.Control
+                            type="file"
+                            multiple
+                            onChange={(e) => {
+                                const input = e.target as HTMLInputElement;
+                                if (!input.files) return;
+                                const newFiles = Array.from(input.files);
+
+                                // Avoid duplicates based on name + size (can be adapted)
+                                const uniqueFiles = [
+                                    ...files,
+                                    ...newFiles.filter(
+                                        (nf) => !files.some((f) => f.name === nf.name && f.size === nf.size)
+                                    ),
+                                ];
+
+                                setFiles(uniqueFiles);
+                                // Reset input to allow re-selection of same file if removed
+                                e.target.value = '';
+                            }}
                         />
+
+                        {/* Show selected files */}
+                        <ul className="mt-2 list-unstyled">
+                            {files.map((file, index) => (
+                                <li key={index} className="d-flex align-items-center justify-content-between mb-1">
+                                    <span>{file.name}</span>
+                                    <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => {
+                                            const updated = [...files];
+                                            updated.splice(index, 1);
+                                            setFiles(updated);
+                                        }}
+                                    >
+                                        <i className="bi bi-trash"></i>
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
                     </Form.Group>
                 </Form>
             </Modal.Body>
