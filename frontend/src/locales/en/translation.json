@@ -122,6 +122,9 @@
     "myRating": "My Rating",
     "book": "Book"
   },
+  "review": {
+    "headline": "Reviews and Comments"
+  },
   "password": {
     "old": "Old Password",
     "new": "New Password",

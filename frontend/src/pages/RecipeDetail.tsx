@@ -145,38 +145,34 @@ const RecipeDetail = () => {
 
                 <Card.Body>
                     <Row>
-                        <Col>
-                            {recipe.tags && recipe.tags.length > 0 && (
-                                <>
-                                    <Card.Subtitle className="text-start mb-2">{t("recipe.tags")}</Card.Subtitle>
-                                    <Stack direction="horizontal" gap={2} className="flex-wrap mb-4">
-                                        {recipe.tags
-                                            .map(tagId => tags.find(t => t.id === tagId))
-                                            .filter(Boolean)
-                                            .map((tag) => (
-                                                <Badge key={tag!.id} bg="secondary">
-                                                    {tag!.name}
-                                                </Badge>
-                                            ))}
-                                    </Stack>
-                                </>
-                            )}
-                        </Col>
-                        <Col>
-                            {recipeBook && (
-                                <>
-                                    <Card.Subtitle className="text-start mb-2">{t('recipe.book')}</Card.Subtitle>
-                                    <div
-                                        role="button"
-                                        className="text-start text-primary mb-2"
-                                        style={{cursor: "pointer"}}
-                                        onClick={() => goToBook(recipeBook)}
-                                    >
-                                        {recipeBook.name}
-                                    </div>
-                                </>
-                            )}
-                        </Col>
+                        {recipe.tags && recipe.tags.length > 0 && (
+                            <Col>
+                                <Card.Subtitle className="text-start mb-2">{t("recipe.tags")}</Card.Subtitle>
+                                <Stack direction="horizontal" gap={2} className="flex-wrap mb-4">
+                                    {recipe.tags
+                                        .map(tagId => tags.find(t => t.id === tagId))
+                                        .filter(Boolean)
+                                        .map((tag) => (
+                                            <Badge key={tag!.id} bg="secondary">
+                                                {tag!.name}
+                                            </Badge>
+                                        ))}
+                                </Stack>
+                            </Col>
+                        )}
+                        {recipeBook && (
+                            <Col>
+                                <Card.Subtitle className="text-start mb-2">{t('recipe.book')}</Card.Subtitle>
+                                <div
+                                    role="button"
+                                    className="text-start text-primary mb-2"
+                                    style={{cursor: "pointer"}}
+                                    onClick={() => goToBook(recipeBook)}
+                                >
+                                    {recipeBook.name}
+                                </div>
+                            </Col>
+                        )}
                     </Row>
                 </Card.Body>
 

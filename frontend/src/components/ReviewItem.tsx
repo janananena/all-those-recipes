@@ -30,7 +30,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({review, editable = false, onChan
     return (
         <div className="mb-4">
             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start mb-1 gap-1">
-                <strong>{displayLabel ?? review.username}</strong>
+                {displayLabel ?? review.username}
                 <UserRating
                     reviews={[review]}
                     username={review.username}
