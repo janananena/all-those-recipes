@@ -117,6 +117,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
         setSteps([]);
         setIngredients([]);
         setLinks([]);
+        if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
     }
 
     function handleClose() {
@@ -160,7 +161,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
     async function urlsToFiles(urls: string[]): Promise<File[]> {
         const files = await Promise.all(
             urls.map(async (url) => {
-                const response = await fetch(`/${url}`);
+                const response = await fetch(`${url}`);
                 const blob = await response.blob();
 
                 const filename = url.split('/').pop() || 'downloaded-file';
@@ -278,7 +279,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                                         }}
                                         ref={thumbnailInputRef}
                                     />
-                                    {thumbnail && (
+                                    {thumbnailPath && (
                                         <Button variant="outline-danger"
                                                 size="sm"
                                                 onClick={() => {
