@@ -229,22 +229,16 @@ const RecipeDetail = () => {
                                     <h4>{t("recipe.files")}</h4>
                                     <ListGroup>
                                         {recipe.files.map((file, i) => {
-                                            if (!file.fileUrl) return;
-                                            console.log("file.fileUrl", file.fileUrl);
+                                            if (!file.fileUrl) return null;
                                             return (
-                                                <ListGroup.Item key={i}>
-                                                    <ListGroup horizontal="sm">
-                                                        <ListGroup.Item key={`file-${i}`}>
-                                                            <a href={`/${file.fileUrl}`} download>
-                                                                {file.fileUrl}
-                                                            </a>
-                                                        </ListGroup.Item>
-                                                    </ListGroup>
+                                                <ListGroup.Item key={`file-${i}`}>
+                                                    <a href={`/${file.fileUrl}`} download>
+                                                        {file.fileUrl}
+                                                    </a>
                                                 </ListGroup.Item>
                                             );
                                         })}
                                     </ListGroup>
-
                                 </>
                             )}
                         </Col>

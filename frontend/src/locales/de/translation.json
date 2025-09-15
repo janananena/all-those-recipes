@@ -23,6 +23,7 @@
   "book": {
     "author": "Autor",
     "edit": "Bearbeiten",
+    "files": "Dateien",
     "recipes": "Rezepte",
     "links": "Links",
     "addAuthorHint": "Autor eingeben",

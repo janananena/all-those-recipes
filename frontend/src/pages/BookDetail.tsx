@@ -165,6 +165,31 @@ export default function BookDetail() {
                     )}
                 </Card.Body>
                 <Card.Body>
+                    {book.files?.length && (
+                        <>
+                            <Card.Subtitle className="text-start mb-2">{t("book.files")}</Card.Subtitle>
+                            <ListGroup>
+                                {book.files.map((file, i) => {
+                                    if (!file.fileUrl) return null;
+                                    // Extract just the filename (without path and extension)
+                                    const fileName = file.fileUrl
+                                        .split('/').pop()!                // "1757936365845-Screenshot-from-2024-12-27-23-38-07.png"
+                                        .replace(/^\d+-/, '')             // remove leading numbers + dash
+                                        .replace(/\.[^/.]+$/, '');        // remove extension
+
+                                    return (
+                                        <ListGroup.Item key={`file-${i}`}>
+                                            <a href={`/${file.fileUrl}`} download>
+                                                {fileName}
+                                            </a>
+                                        </ListGroup.Item>
+                                    );
+                                })}
+                            </ListGroup>
+                        </>
+                    )}
+                </Card.Body>
+                <Card.Body>
                     <ReviewList
                         reviews={book.reviews || []}
                         username={user ?? ''}
