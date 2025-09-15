@@ -10,6 +10,8 @@ import type {Book} from "../types/Book.ts";
 import {changeRecipe, uploadFile, uploadImage} from "../api/recipes.ts";
 import type {ExtFile} from "../types/Recipe.ts";
 import {AxiosError} from 'axios';
+import CreatableSelect from 'react-select/creatable';
+import {createTag} from "../api/tag.ts";
 
 interface AddBookModalProps {
     show: boolean;
@@ -21,7 +23,7 @@ interface AddBookModalProps {
 }
 
 export default function AddEditBookModal({show, closeModal, mode, initialBook, addBook, updateBook}: AddBookModalProps) {
-    const {recipes, updateRecipe} = useContext(RecipeContext);
+    const {recipes, updateRecipe, tags, reloadTags} = useContext(RecipeContext);
     const [name, setName] = useState('');
 
     const [author, setAuthor] = useState('');
@@ -36,6 +38,8 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
     const [initialBookFiles, setinitialBookFiles] = useState<File[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [fileObjects, setFileObjects] = useState<ExtFile[]>([]);
+
+    const [tagsRaw, setTagsRaw] = useState("");
 
     const {t} = useTranslation();
 
@@ -53,6 +57,12 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
     const allRecipeOptions = recipes
         .filter(recipe => recipe.book === undefined || recipe.book === initialBook?.id)
         .map(recipe => ({value: recipe.id, label: recipe.name}));
+
+    const tagOptionIds = tagsRaw.split(",").map(t => t.trim());
+    const selectedTagOptions = tags
+        .filter(tag => tagOptionIds.some(value => value === tag.id))
+        .map(tag => ({value: tag.id, label: tag.name}));
+    const allTagOptions = tags.map(tag => ({value: tag.id, label: tag.name}));
 
     const handleChangeRecipes = async (_newValue: MultiValue<SelectOptionType>, actionMeta: ActionMeta<SelectOptionType>) => {
         const id = initialBook?.id ?? name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -96,6 +106,18 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         return files;
     }
 
+    async function handleMultiChange(newValue: MultiValue<SelectOptionType>, actionMeta: ActionMeta<SelectOptionType>) {
+        if (["select-option", "deselect-option", "remove-value", "pop-value"].includes(actionMeta.action)) {
+            setTagsRaw(newValue.map(v => v.value).join(","));
+        } else if (actionMeta.action === "create-option") {
+            newValue.filter(v => !tags.map(t => t.id).includes(v.value)).forEach(async v => {
+                await createTag({id: v.value, name: v.label});
+            });
+            setTagsRaw(newValue.map(v => v.value).join(","));
+            reloadTags().then();
+        }
+    }
+
     const handleSubmit = async () => {
             if (!name.trim()) return;
             setSaving(true);
@@ -127,6 +149,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                 const newBook = {
                     name: name.trim() ?? '',
                     author: author.trim() ?? '',
+                    tags: tagsRaw.split(",").map(t => t.trim()).filter(Boolean),
                     links: normalizedLinks.length ? normalizedLinks : undefined,
                     thumbnail: uploadedThumbnailPath,
                     files: uploadedFiles.length ? uploadedFiles : undefined,
@@ -175,6 +198,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         setFiles(bookFiles);
         setinitialBookFiles(bookFiles);
         setFileObjects(book.files ?? []);
+        setTagsRaw(book.tags ? book.tags.join(",") : "");
     }
 
     const resetFields = () => {
@@ -187,6 +211,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
         setFiles([]);
         setinitialBookFiles([]);
         setFileObjects([]);
+        setTagsRaw('');
     }
 
     const handleCancel = () => {
@@ -215,6 +240,20 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                             type="text"
                             value={author}
                             onChange={(e) => setAuthor(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group controlId="bookTags" className="mb-2">
+                        <Form.Label>{t("book.tags")}</Form.Label>
+                        <CreatableSelect
+                            isMulti
+                            name="bookTagsSelect"
+                            options={allTagOptions}
+                            value={selectedTagOptions}
+                            onChange={handleMultiChange}
+                            placeholder={t("book.modal.tagsHint")}
+                            classNamePrefix="react-select"
+                            theme={customTheme()}
+                            styles={customStyles(true)}
                         />
                     </Form.Group>
                     <Form.Group controlId="bookThumbnail" className="mb-3">

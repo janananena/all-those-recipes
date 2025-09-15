@@ -8,6 +8,7 @@ export interface Book {
     id: string;
     name: string;
     author?: string;
+    tags?: string[];
     links?: string[];
     recipes?: string[];
     files?: BookFile[];

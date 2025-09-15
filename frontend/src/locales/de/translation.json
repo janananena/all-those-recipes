@@ -28,6 +28,7 @@
     "links": "Links",
     "addAuthorHint": "Autor eingeben",
     "addThumbnail": "Bild hinzufügen",
+    "tags": "Tags",
     "modal": {
       "add": "Buch hinzufügen",
       "edit": "Buch bearbeiten",
@@ -38,7 +39,8 @@
       "addLink": "Link hinzufügen",
       "recipesHint": "Rezepte auswählen",
       "thumbnail": "Bild",
-      "recipes": "Rezepte"
+      "recipes": "Rezepte",
+      "tagsHint": "Tags hinzufügen"
     }
   },
   "books": {

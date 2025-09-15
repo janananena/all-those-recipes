@@ -21,6 +21,13 @@
       "type": "string",
       "description": "Display name of the book."
     },
+    "tags": {
+      "type": "array",
+      "description": "Optional tag ids for categorizing the book (e.g., 'vegan', 'quick').",
+      "items": {
+        "type": "string"
+      }
+    },
     "links": {
       "type": "array",
       "description": "Optional URLs related to the recipe (e.g., blog posts, videos).",

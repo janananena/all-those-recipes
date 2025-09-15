@@ -3,7 +3,7 @@ import {BooksContext} from "../context/BooksContext.tsx";
 import {type SetStateAction, useContext, useEffect, useState} from "react";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import {useUsersContext} from "../context/UsersContext.tsx";
-import {Button, ButtonGroup, Card, Container, ListGroup} from "react-bootstrap";
+import {Badge, Button, ButtonGroup, Card, Col, Container, ListGroup, Row, Stack} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import AverageRating from "../components/AverageRating.tsx";
 import type {Recipe} from "../types/Recipe.ts";
@@ -15,7 +15,7 @@ import {getButtonOutline, getInitialThumbnailSize, getThumbnailClass, popupImgSt
 
 export default function BookDetail() {
     const {id} = useParams<{ id: string }>();
-    const {recipes, reloadRecipes} = useContext(RecipeContext);
+    const {recipes, reloadRecipes, tags, reloadTags} = useContext(RecipeContext);
     const {books, reloadBooks, addNewBook, updateBook} = useContext(BooksContext);
     const {reloadUsers} = useUsersContext();
     const {t} = useTranslation();
@@ -33,6 +33,7 @@ export default function BookDetail() {
             reloadUsers().then();
             reloadRecipes().then();
             reloadBooks().then();
+            reloadTags().then();
         }
     }, [id, book]);
 
@@ -119,14 +120,31 @@ export default function BookDetail() {
                     </div>
                 )}
                 <Card.Body>
-                    {book.author && (
-                        <>
-                            <Card.Subtitle className="text-start mb-2">{t("book.author")}</Card.Subtitle>
-                            <Card.Text className="text-start mb-2">
-                                {book.author}
-                            </Card.Text>
-                        </>
-                    )}
+                    <Row>
+                        {book.author && (
+                            <Col>
+                                <Card.Subtitle className="text-start mb-2">{t("book.author")}</Card.Subtitle>
+                                <Card.Text className="text-start mb-2">
+                                    {book.author}
+                                </Card.Text>
+                            </Col>
+                        )}
+                        {book.tags && book.tags.length > 0 && (
+                            <Col>
+                                <Card.Subtitle className="text-start mb-2">{t("recipe.tags")}</Card.Subtitle>
+                                <Stack direction="horizontal" gap={2} className="flex-wrap mb-4">
+                                    {book.tags
+                                        .map(tagId => tags.find(t => t.id === tagId))
+                                        .filter(Boolean)
+                                        .map((tag) => (
+                                            <Badge key={tag!.id} bg="secondary">
+                                                {tag!.name}
+                                            </Badge>
+                                        ))}
+                                </Stack>
+                            </Col>
+                        )}
+                    </Row>
                 </Card.Body>
                 <Card.Body>
                     {bookRecipes.length > 0 && (

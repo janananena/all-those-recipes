@@ -28,6 +28,7 @@
     "links": "Links",
     "addAuthorHint": "add Author",
     "addThumbnail": "add Image",
+    "tags": "Tags",
     "modal": {
       "add": "Add Book",
       "edit": "Edit Book",
@@ -38,7 +39,8 @@
       "addLink": "add Link",
       "recipesHint": "choose Recipes",
       "thumbnail": "Image",
-      "recipes": "Recipes"
+      "recipes": "Recipes",
+      "tagsHint": "Add Tags"
     }
   },
   "books": {
