@@ -3,6 +3,29 @@ import type {Recipe} from "../types/Recipe";
 
 const apiBaseUrl = `/api`;
 
+function sanitizeFilename(filename: string): string {
+    const replacements: Record<string, string> = {
+        "ä": "ae",
+        "ö": "oe",
+        "ü": "ue",
+        "Ä": "Ae",
+        "Ö": "Oe",
+        "Ü": "Ue",
+        "ß": "ss",
+    };
+
+    // Replace umlauts
+    filename = filename.replace(/[äöüÄÖÜß]/g, (char) => replacements[char] ?? char);
+
+    // Replace spaces with underscores
+    filename = filename.replace(/\s+/g, "_");
+
+    // Remove all other non-safe characters
+    filename = filename.replace(/[^a-zA-Z0-9._-]/g, "");
+
+    return filename;
+}
+
 export const fetchRecipes = async (): Promise<Recipe[]> => {
     const res = await axios.get<Recipe[]>(`${apiBaseUrl}/recipes`);
     return res.data;
@@ -31,36 +54,16 @@ export async function removeRecipe(recipeId: string): Promise<Recipe> {
 export async function uploadImage(image: File): Promise<string> {
     const headers = {headers: {'Content-Type': 'multipart/form-data'}};
     const formData = new FormData();
-    formData.append("image", image);
+
+    const sanitizedFilename = sanitizeFilename(image.name);
+    const newFile = new File([image], sanitizedFilename, {type: image.type});
+    console.log(`change filename old ${image.name} new ${sanitizedFilename}`);
+    formData.append("image", newFile);
 
     const response = await axios.post(`${apiBaseUrl}/uploadImage`, formData, headers);
     console.log(`added image ${response.data.url}: `);
     return response.data.url;
 }
-
-function sanitizeFilename(filename: string): string {
-    const replacements: Record<string, string> = {
-        "ä": "ae",
-        "ö": "oe",
-        "ü": "ue",
-        "Ä": "Ae",
-        "Ö": "Oe",
-        "Ü": "Ue",
-        "ß": "ss",
-    };
-
-    // Replace umlauts
-    filename = filename.replace(/[äöüÄÖÜß]/g, (char) => replacements[char] ?? char);
-
-    // Replace spaces with underscores
-    filename = filename.replace(/\s+/g, "_");
-
-    // Remove all other non-safe characters
-    filename = filename.replace(/[^a-zA-Z0-9._-]/g, "");
-
-    return filename;
-}
-
 
 export async function uploadFile(file: File): Promise<string> {
     const headers = {headers: {'Content-Type': 'multipart/form-data'}};
