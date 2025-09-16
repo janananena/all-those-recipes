@@ -261,9 +261,33 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                         <InputGroup>
                             <Form.Control
                                 type="file"
+                                accept="image/*"
                                 onChange={(e) => {
                                     const input = e.target as HTMLInputElement;
-                                    setThumbnail(input.files?.[0] ?? null)
+                                    const file = input.files?.[0];
+
+                                    if (file) {
+                                        // Check MIME type
+                                        if (!file.type.startsWith("image/")) {
+                                            alert("Please select a valid image file.");
+                                            input.value = ""; // reset the field
+                                            setThumbnail(null);
+                                            return;
+                                        }
+
+                                        // Optional: Check extension manually
+                                        const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+                                        const lowerName = file.name.toLowerCase();
+                                        if (!validExtensions.some(ext => lowerName.endsWith(ext))) {
+                                            alert("Only JPG, PNG, GIF, or WEBP files are allowed.");
+                                            input.value = "";
+                                            setThumbnail(null);
+                                            return;
+                                        }
+                                        setThumbnail(file);
+                                    } else {
+                                        setThumbnail(null);
+                                    }
                                 }}
                                 ref={thumbnailInputRef}
                             />
