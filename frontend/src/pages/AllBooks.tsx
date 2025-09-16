@@ -42,7 +42,7 @@ export default function AllBooks() {
             await reloadBooks();
             setNewBookInput("");
         } catch (err) {
-            console.error("Failed to add tag", err);
+            console.error("Failed to add book", err);
         }
     };
 

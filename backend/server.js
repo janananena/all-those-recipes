@@ -63,12 +63,36 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
+        req.user = decoded.userId;
+        req.roles = decoded.roles;
         next();
     } catch (err) {
         return res.status(401).json({error: 'Invalid or expired token'});
     }
 };
+
+function requireRole(role) {
+    return (req, res, next) => {
+        const userId = req.user;
+        if(!userId){
+            console.warn("No userId given.");
+            return res.status(401).json({message: "Unauthorized."});
+        }
+        const roles = req.roles;
+
+        if(roles.includes("admin")){
+            console.log("Admin can pass.");
+            return next();
+        }
+
+        if (!roles?.includes(role)) {
+            console.log(`User ${userId} does not have required role ${role}.`);
+            return res.status(403).json({ error: "Forbidden: Insufficient roles." });
+        }
+        console.log(`User ${userId}: found required role ${role}.`);
+        next();
+    };
+}
 
 server.use(authMiddleware);
 
@@ -178,7 +202,7 @@ const ensureDefaultAdminUser = async () => {
 await ensureDefaultAdminUser();
 
 
-server.post('/createUser', async (req, res) => {
+server.post('/createUser', requireRole("usermanager"), async (req, res) => {
     const {username, password} = req.body;
     if (!username || !password) return res.status(400).json({error: 'Username and password required'});
 
@@ -191,7 +215,7 @@ server.post('/createUser', async (req, res) => {
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
-        users.push({username, passwordHash});
+        users.push({username, passwordHash, roles: []});
 
         // Remove default admin if other user is added
         if (username !== 'admin' && users.some(u => u.username === 'admin')) {
@@ -220,7 +244,7 @@ server.get('/users', (req, res) => {
         });
 });
 
-server.delete('/users/:username', async (req, res) => {
+server.delete('/users/:username', requireRole("admin"), async (req, res) => {
     const {username} = req.params;
 
     try {
@@ -236,7 +260,7 @@ server.delete('/users/:username', async (req, res) => {
         // If last user deleted, re-create default admin
         if (users.length === 0) {
             const passwordHash = await bcrypt.hash('password', 10);
-            users.push({username: 'admin', passwordHash});
+            users.push({username: 'admin', passwordHash, roles: ["admin"]});
             console.log('All users deleted, re-created default admin (admin/password)');
         }
 
@@ -250,7 +274,7 @@ server.delete('/users/:username', async (req, res) => {
 
 server.get('/me', (req, res) => {
     if (!req.user) return res.status(401).json({error: 'Unauthorized'});
-    res.json({username: req.user.username});
+    res.json({username: req.user, roles: req.roles});
 });
 
 server.post('/changePassword', async (req, res) => {
@@ -301,7 +325,10 @@ server.post('/login', async (req, res) => {
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) return res.status(401).json({error: 'Invalid username or password'});
 
-        const token = jwt.sign({username}, JWT_SECRET, {expiresIn: '7d'});
+        const token = jwt.sign(
+            {userId: username, roles: user.roles},
+            JWT_SECRET,
+            {expiresIn: '7d'});
 
         res.json({token});
     } catch (err) {

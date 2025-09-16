@@ -1,14 +1,30 @@
 [
   {
     "username": "petra",
-    "passwordHash": "$2b$10$nBnd2EsxHZZxkYO5WAY5eOHgFLxpssudPNbnjAdTPy8He8Q/Uom36"
+    "passwordHash": "$2b$10$nBnd2EsxHZZxkYO5WAY5eOHgFLxpssudPNbnjAdTPy8He8Q/Uom36",
+    "roles": [
+      "usermanager"
+    ]
   },
   {
     "username": "jana",
-    "passwordHash": "$2b$10$VqFWPuwyyl1IDtTimxvG3.bP46iFCyyn/Su3jt2uPTPWYDnYt9TdS"
+    "passwordHash": "$2b$10$VqFWPuwyyl1IDtTimxvG3.bP46iFCyyn/Su3jt2uPTPWYDnYt9TdS",
+    "roles": [
+      "admin",
+      "usermanager"
+    ]
   },
   {
     "username": "david",
-    "passwordHash": "$2b$10$TjITTDr.izPIfiVrbqs5Eec8.hMeE6dB1ZsvfYesCSgwH69EJVe4."
+    "passwordHash": "$2b$10$TjITTDr.izPIfiVrbqs5Eec8.hMeE6dB1ZsvfYesCSgwH69EJVe4.",
+    "roles": [
+      "admin",
+      "usermanager"
+    ]
+  },
+  {
+    "username": "test",
+    "passwordHash": "$2b$10$bK5L3hIeJCx0dm/16PbMp.jf3S/HBum.cL9jnsWYLKj2VAh4WDU1O",
+    "roles": []
   }
 ]

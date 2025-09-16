@@ -6,6 +6,7 @@ const apiBaseUrl = `/api`;
 type AuthContextType = {
     user: string | null;
     token: string | null;
+    roles: string[];
     login: (username: string, password: string) => Promise<void>;
     logout: () => void;
     changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
@@ -15,6 +16,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
     user: null,
     token: null,
+    roles: [],
     login: async () => {},
     logout: () => {},
     changePassword: async () => {},
@@ -23,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<string | null>(null);
+    const [roles, setRoles] = useState<string[]>([]);
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -33,7 +36,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setToken(storedToken);
             axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             axios.get(`${apiBaseUrl}/me`)
-                .then(res => setUser(res.data.username))
+                .then(res => {
+                    setUser(res.data.username);
+                    setRoles(res.data.roles);
+                })
                 .catch(err => {
                     console.error("Token invalid or expired", err);
                     logout();
@@ -57,11 +63,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             },
         });
         setUser(me.data.username);
+        setRoles(me.data.roles);
     };
 
     const logout = () => {
         setUser(null);
         setToken(null);
+        setRoles([]);
         localStorage.removeItem('token');
         delete axios.defaults.headers.common['Authorization'];
     };
@@ -71,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, changePassword, loading }}>
+        <AuthContext.Provider value={{ user, token, roles, login, logout, changePassword, loading }}>
             {children}
         </AuthContext.Provider>
     );
