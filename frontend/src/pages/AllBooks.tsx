@@ -9,6 +9,7 @@ import {useAuth} from "../context/AuthContext.tsx";
 import type {Book} from "../types/Book.ts";
 import {useNavigate} from "react-router-dom";
 import {RecipeContext} from "../context/RecipeContext.tsx";
+import {sortByAverage, sortByUserRating} from "../helper/ratingHelper.ts";
 
 function sanitizeId(name: string): string {
     return name.trim().toLowerCase().replace(/\s+/g, "-");
@@ -55,7 +56,7 @@ export default function AllBooks() {
 
     const bookRecipesCnt = (book: Book) => recipes.filter((r) => r.book === book.id).length;
 
-    type SortKey = "name" | "author" | "count";
+    type SortKey = "name" | "author" | "count" | "average" | "rating";
     const [sortConfig, setSortConfig] = useState<{ key: SortKey, direction: "asc" | "desc" }>({key: "author", direction: "asc"});
 
     const handleSort = (key: SortKey) => {
@@ -109,6 +110,12 @@ export default function AllBooks() {
     const sortedBooks: Book[] = useMemo(() => {
         if (sortConfig.key === "author") {
             return [];
+        }
+        if (sortConfig.key === "average") {
+            return sortByAverage(books, sortConfig.direction);
+        }
+        if (sortConfig.key === "rating") {
+            return sortByUserRating(books, user ?? '', sortConfig.direction);
         }
         if (sortConfig.key === "count") {
             return [...books].sort((a, b) => {
@@ -211,8 +218,8 @@ export default function AllBooks() {
                     <th style={{width: '10%'}} className="text-muted d-none d-md-table-cell" onClick={() => handleSort("author")}>{t("books.author")} {renderSortIndicator("author")}</th>
                     <th style={{width: '10%'}} className="text-muted d-none d-md-table-cell">{t("books.tags")}</th>
                     <th style={{width: '5%'}} className="text-muted text-nowrap d-none d-md-table-cell" onClick={() => handleSort("count")}>{t("books.recipesCnt")} {renderSortIndicator("count")}</th>
-                    <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("books.avgRating")}</th>
-                    <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("books.myRating")}</th>
+                    <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}} onClick={() => handleSort("average")}>{t("books.avgRating")} {renderSortIndicator("average")}</th>
+                    <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}} onClick={() => handleSort("rating")}>{t("books.myRating")} {renderSortIndicator("rating")}</th>
                 </tr>
                 </thead>
                 <tbody>

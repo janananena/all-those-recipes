@@ -9,6 +9,7 @@ import AverageRating from "./AverageRating.tsx";
 import {useAuth} from "../context/AuthContext.tsx";
 import {useFavorites} from "../context/FavoritesContext.tsx";
 import {BooksContext} from "../context/BooksContext.tsx";
+import {sortByAverage, sortByUserRating} from "../helper/ratingHelper.ts";
 
 type Props = {
     recipes: Recipe[];
@@ -30,7 +31,7 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
 
     const recipeBook = (recipe: Recipe) => books.find((b) => b.id === recipe?.book);
 
-    type SortKey = "book" | "name";
+    type SortKey = "book" | "name" | "average" | "rating";
     const [sortConfig, setSortConfig] = useState<{ key: SortKey, direction: "asc" | "desc" }>({key: "book", direction: "asc"});
 
     const handleSort = (key: SortKey) => {
@@ -84,6 +85,12 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
     const sortedRecipes: Recipe[] = useMemo(() => {
         if (sortConfig.key === "book") {
             return [];
+        }
+        if (sortConfig.key === "average") {
+            return sortByAverage(recipes, sortConfig.direction);
+        }
+        if (sortConfig.key === "rating") {
+            return sortByUserRating(recipes, user ?? '', sortConfig.direction);
         }
         return [...recipes].sort((a, b) => {
             const key = sortConfig.key as keyof Recipe;
@@ -187,8 +194,8 @@ const RecipeTable: React.FC<Props> = ({recipes, onSelect}) => {
                 <th style={{width: '40%'}} className="text-muted text-start" onClick={() => handleSort("name")}>{t("recipes.name")} {renderSortIndicator("name")}</th>
                 <th style={{width: '10%'}} className="text-muted" onClick={() => handleSort("book")}>{t("recipes.book")} {renderSortIndicator("book")}</th>
                 <th style={{width: '20%'}} className="text-muted d-none d-md-table-cell">{t("recipes.tags")}</th>
-                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("recipes.avgRating")}</th>
-                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}}>{t("recipes.myRating")}</th>
+                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}} onClick={() => handleSort("average")}>{t("recipes.avgRating")} {renderSortIndicator("average")}</th>
+                <th className="text-nowrap text-muted d-none d-md-table-cell" style={{width: '15%'}} onClick={() => handleSort("rating")}>{t("recipes.myRating")} {renderSortIndicator("rating")}</th>
             </tr>
             </thead>
             <tbody>

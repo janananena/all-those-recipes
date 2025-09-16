@@ -1,5 +1,6 @@
 import React from 'react';
 import Rating from "react-rating";
+import {calculateAverageScore} from "../helper/ratingHelper.ts";
 
 export interface ReviewEntry {
     username: string;
@@ -13,7 +14,7 @@ interface AverageRatingProps {
 
 const AverageRating: React.FC<AverageRatingProps> = ({reviews}) => {
     if (!reviews || reviews.length === 0) return <span className="text-muted">No rating</span>;
-    const avg = reviews.reduce((sum, r) => sum + (r.score ?? 0), 0) / reviews.length;
+    const avg = calculateAverageScore(reviews);
 
     return (
         <div className="d-inline-flex align-items-center gap-1 flex-nowrap">
