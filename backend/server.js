@@ -43,6 +43,8 @@ const validateBooks = ajv.compile(booksSchema);
 
 // Middleware
 server.use(middlewares);
+
+server.use(express.json());
 server.use(jsonServer.bodyParser);
 
 // Health check
@@ -193,14 +195,13 @@ const ensureDefaultAdminUser = async () => {
 
     if (users.length === 0) {
         const passwordHash = await bcrypt.hash('password', 10);
-        const defaultUser = {username: 'admin', passwordHash};
+        const defaultUser = {username: 'admin', passwordHash, roles: ["admin"]};
         await fs.promises.writeFile(usersFilePath, JSON.stringify([defaultUser], null, 2), 'utf-8');
         console.log('🔐 Default admin user created: username=admin, password=password');
     }
 };
 
 await ensureDefaultAdminUser();
-
 
 server.post('/createUser', requireRole("usermanager"), async (req, res) => {
     const {username, password} = req.body;
@@ -215,12 +216,14 @@ server.post('/createUser', requireRole("usermanager"), async (req, res) => {
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
-        users.push({username, passwordHash, roles: []});
 
         // Remove default admin if other user is added
         if (username !== 'admin' && users.some(u => u.username === 'admin')) {
+            users.push({username, passwordHash, roles: ["admin"]});
             users = users.filter(u => u.username !== 'admin');
             console.log('🗑️ Default admin user removed after real user creation');
+        } else {
+            users.push({username, passwordHash, roles: []});
         }
 
         await fs.promises.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
@@ -235,7 +238,7 @@ server.post('/createUser', requireRole("usermanager"), async (req, res) => {
 server.get('/users', (req, res) => {
     fs.promises.readFile(usersFilePath, 'utf-8')
         .then(data => {
-            const users = JSON.parse(data).map(u => ({username: u.username}));
+            const users = JSON.parse(data).map(u => ({username: u.username, roles: u.roles}));
             res.json(users);
         })
         .catch(err => {
@@ -302,6 +305,47 @@ server.post('/changePassword', async (req, res) => {
     } catch (err) {
         console.error('Error changing password:', err);
         res.status(500).json({error: 'Internal server error'});
+    }
+});
+
+server.patch('/users/:username/roles', async (req, res) => {
+    const { username } = req.params;
+    const { roles } = req.body; // expecting an array of strings
+    const requesterRoles = req.roles || [];
+
+    if (!Array.isArray(roles)) {
+        console.log(`patch roles user ${username} roles ${roles}`);
+        return res.status(400).json({ error: "Roles must be an array" });
+    }
+
+    try {
+        const data = await fs.promises.readFile(usersFilePath, 'utf-8');
+        const users = JSON.parse(data);
+
+        const user = users.find(u => u.username === username);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // 🔒 Permission checks
+        if (requesterRoles.includes("admin")) {
+            // admins can assign any roles
+            user.roles = roles;
+        } else if (requesterRoles.includes("usermanager")) {
+            if (roles.includes("admin")) {
+                return res.status(403).json({ error: "Only admin can assign admin role." });
+            }
+            user.roles = roles;
+        } else {
+            console.log(`User ${req.user} does not have required role usermanager.`);
+            return res.status(403).json({ error: "Forbidden: insufficient permissions." });
+        }
+
+        await fs.promises.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
+        res.json({ message: `Roles updated for ${username}`, roles: user.roles });
+    } catch (err) {
+        console.error("Error updating roles:", err);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 

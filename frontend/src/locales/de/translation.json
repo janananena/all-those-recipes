@@ -67,7 +67,10 @@
   "users": {
     "allUsers": "Alle Benutzer",
     "delete": "Löschen",
-    "deleteConfirmation": "Sicher, dass {{user}} gelöscht werden soll?"
+    "deleteConfirmation": "Sicher, dass {{user}} gelöscht werden soll?",
+    "username": "Benutzer",
+    "isUsermanager": "User Manager",
+    "isAdmin": "Admin"
   },
   "user": {
     "add": "Neuen Benutzer hinzufügen",

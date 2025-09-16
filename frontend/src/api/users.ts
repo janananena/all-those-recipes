@@ -16,3 +16,10 @@ export async function deleteUser(username: string) {
     const res = await axios.delete(`${apiBaseUrl}/users/${username}`);
     return res.data;
 }
+
+export async function changeUserRoles(username: string, roles: string[]) {
+    const headers = {headers: {'Content-Type': 'application/json'}};
+    console.log(`change user role, user ${username}, roles ${roles}`);
+    const res = await axios.patch(`${apiBaseUrl}/users/${username}/roles`, {roles}, headers);
+    return res.data;
+}
