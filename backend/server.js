@@ -108,10 +108,28 @@ const storage = multer.memoryStorage();
 const upload = multer({storage});
 
 function sanitizeFilename(filename) {
-  return filename
-    .normalize("NFKD")              // split accents
-    .replace(/[^\w.-]/g, "_");      // only keep ASCII letters, digits, dash, dot, underscore
+    const replacements = {
+        "ä": "ae",
+        "ö": "oe",
+        "ü": "ue",
+        "Ä": "Ae",
+        "Ö": "Oe",
+        "Ü": "Ue",
+        "ß": "ss",
+    };
+
+    // Replace umlauts
+    filename = filename.replace(/[äöüÄÖÜß]/g, (char) => replacements[char] ?? char);
+
+    // Replace spaces with underscores
+    filename = filename.replace(/\s+/g, "_");
+
+    // Remove all other non-safe characters
+    filename = filename.replace(/[^a-zA-Z0-9._-]/g, "");
+
+    return filename;
 }
+
 
 server.post('/uploadImage', upload.single('image'), async (req, res) => {
     try {
@@ -119,7 +137,7 @@ server.post('/uploadImage', upload.single('image'), async (req, res) => {
         if (!req.file) return res.status(400).json({error: 'No file uploaded'});
 
         const timestamp = Date.now();
-        const outputFilename = `${timestamp}-${sanitizeFilename(req.file.originalname.replace(/\s+/g, '-'))}`;
+        const outputFilename = `${timestamp}-${sanitizeFilename(req.file.originalname)}`;
         const outputPath = join(uploadFolder, outputFilename);
 
         console.log('Processing image...');
@@ -138,7 +156,7 @@ server.post('/uploadFile', upload.single('file'), async (req, res) => {
         if (!req.file) return res.status(400).json({error: 'No file uploaded'});
 
         const timestamp = Date.now();
-        const outputFilename = `${timestamp}-${sanitizeFilename(req.file.originalname.replace(/\s+/g, '-'))}`;
+        const outputFilename = `${timestamp}-${sanitizeFilename(req.file.originalname)}`;
         const outputPath = join(uploadFolder, outputFilename);
 
         await fs.promises.writeFile(outputPath, req.file.buffer);

@@ -258,7 +258,7 @@ const RecipeDetail = () => {
                                         .replace(/\.[^/.]+$/, '');        // remove extension
                                     return (
                                         <ListGroup.Item key={`file-${i}`}>
-                                            <a href={`/${file.fileUrl}`} download>
+                                            <a href={`${file.fileUrl}`} download>
                                                 {fileName}
                                             </a>
                                         </ListGroup.Item>

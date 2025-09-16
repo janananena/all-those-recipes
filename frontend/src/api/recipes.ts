@@ -38,10 +38,38 @@ export async function uploadImage(image: File): Promise<string> {
     return response.data.url;
 }
 
+function sanitizeFilename(filename: string): string {
+    const replacements: Record<string, string> = {
+        "ä": "ae",
+        "ö": "oe",
+        "ü": "ue",
+        "Ä": "Ae",
+        "Ö": "Oe",
+        "Ü": "Ue",
+        "ß": "ss",
+    };
+
+    // Replace umlauts
+    filename = filename.replace(/[äöüÄÖÜß]/g, (char) => replacements[char] ?? char);
+
+    // Replace spaces with underscores
+    filename = filename.replace(/\s+/g, "_");
+
+    // Remove all other non-safe characters
+    filename = filename.replace(/[^a-zA-Z0-9._-]/g, "");
+
+    return filename;
+}
+
+
 export async function uploadFile(file: File): Promise<string> {
     const headers = {headers: {'Content-Type': 'multipart/form-data'}};
     const formData = new FormData();
-    formData.append("file", file);
+
+    const sanitizedFilename = sanitizeFilename(file.name);
+    const newFile = new File([file], sanitizedFilename, {type: file.type});
+    console.log(`change filename old ${file.name} new ${sanitizedFilename}`);
+    formData.append("file", newFile);
     const response = await axios.post(`${apiBaseUrl}/uploadFile`, formData, headers);
     console.log(`added file ${response.data.url}: `);
     return response.data.url;
