@@ -263,20 +263,24 @@ const RecipeDetail = () => {
                             <ListGroup>
                                 {recipe.files.map((file, i) => {
                                     if (!file) return null;
-                                    console.log("isAiUser", isAiUser);
+                                    const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+                                    const lowerName = file.toLowerCase();
+                                    const isImage = validExtensions.some(ext => lowerName.endsWith(ext));
                                     // Extract just the filename (without path and extension)
                                     const fileName = file
                                         .split('/').pop()!                // "1757936365845-Screenshot-from-2024-12-27-23-38-07.png"
                                         .replace(/^\d+-/, '')             // remove leading numbers + dash
                                         .replace(/\.[^/.]+$/, '');        // remove extension
                                     return (
-                                        <>
-                                            <ListGroup.Item key={`file-${i}`}>
-                                                <a href={`${file}`} download>
-                                                    {fileName}
-                                                </a>
-                                            </ListGroup.Item>
-                                        </>
+                                        <ListGroup.Item
+                                            key={`file-${i}`}
+                                            className="d-flex justify-content-between align-items-center"
+                                        >
+                                            <a href={file} download>
+                                                {fileName}
+                                            </a>
+                                            {isImage && <AiButton recipeId={recipe.id} fileUrl={file}/>}
+                                        </ListGroup.Item>
                                     );
                                 })}
                             </ListGroup>
