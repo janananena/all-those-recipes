@@ -8,7 +8,6 @@ import {RecipeContext} from "../context/RecipeContext.tsx";
 import {customStyles, customTheme, type SelectOptionType} from "../helper/reactSelectHelper.ts";
 import type {Book} from "../types/Book.ts";
 import {changeRecipe, uploadFile, uploadImage} from "../api/recipes.ts";
-import type {ExtFile} from "../types/Recipe.ts";
 import {AxiosError} from 'axios';
 import CreatableSelect from 'react-select/creatable';
 import {createTag} from "../api/tag.ts";
@@ -37,7 +36,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
 
     const [initialBookFiles, setinitialBookFiles] = useState<File[]>([]);
     const [files, setFiles] = useState<File[]>([]);
-    const [fileObjects, setFileObjects] = useState<ExtFile[]>([]);
+    const [fileObjects, setFileObjects] = useState<string[]>([]);
 
     const [tagsRaw, setTagsRaw] = useState("");
 
@@ -128,11 +127,11 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
                     setThumbnailPath(uploadedThumbnailPath);
                 }
 
-                const uploadedFiles: ExtFile[] = [...fileObjects];
+                const uploadedFiles: string[] = [...fileObjects];
                 for (const file of files) {
                     if (!initialBookFiles.includes(file)) {
                         const res = await uploadFile(file);
-                        uploadedFiles.push({fileUrl: res});
+                        uploadedFiles.push(res);
 
                     }
                 }
@@ -188,7 +187,7 @@ export default function AddEditBookModal({show, closeModal, mode, initialBook, a
 
     const initializeFields = async (book: Book) => {
         const bookRecipes = recipes.filter((r) => r.book === book.id)
-        const bookFiles = await urlsToFiles(book.files?.map(f => f.fileUrl) ?? []);
+        const bookFiles = await urlsToFiles(book.files ?? []);
         setName(book.name);
         setAuthor(book.author ?? '');
         setLinks(book.links ?? []);

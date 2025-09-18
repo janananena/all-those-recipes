@@ -262,17 +262,17 @@ const RecipeDetail = () => {
                             <Card.Subtitle className="text-start mb-2">{t("recipe.files")}</Card.Subtitle>
                             <ListGroup>
                                 {recipe.files.map((file, i) => {
-                                    if (!file.fileUrl) return null;
+                                    if (!file) return null;
                                     console.log("isAiUser", isAiUser);
                                     // Extract just the filename (without path and extension)
-                                    const fileName = file.fileUrl
+                                    const fileName = file
                                         .split('/').pop()!                // "1757936365845-Screenshot-from-2024-12-27-23-38-07.png"
                                         .replace(/^\d+-/, '')             // remove leading numbers + dash
                                         .replace(/\.[^/.]+$/, '');        // remove extension
                                     return (
                                         <>
                                             <ListGroup.Item key={`file-${i}`}>
-                                                <a href={`${file.fileUrl}`} download>
+                                                <a href={`${file}`} download>
                                                     {fileName}
                                                 </a>
                                             </ListGroup.Item>

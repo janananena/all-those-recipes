@@ -2,10 +2,10 @@ import {useContext, useEffect, useRef, useState} from "react";
 import {Button, Col, Form, InputGroup, Modal, Row} from "react-bootstrap";
 import {AxiosError} from "axios";
 import {changeRecipe, createRecipe, uploadFile, uploadImage} from "../api/recipes.ts";
-import type {ExtFile, IngredientGroup, NewRecipe, Recipe} from "../types/Recipe.ts";
+import type {IngredientGroup, NewRecipe, Recipe} from "../types/Recipe.ts";
 import {RecipeContext} from "../context/RecipeContext.tsx";
 import CreatableSelect from "react-select/creatable";
-import type {ActionMeta, GroupBase, SingleValue, MultiValue} from "react-select";
+import type {ActionMeta, GroupBase, MultiValue, SingleValue} from "react-select";
 import {createTag} from "../api/tag.ts";
 import {useTranslation} from "react-i18next";
 import {BooksContext} from "../context/BooksContext.tsx";
@@ -35,7 +35,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
     const [thumbnailPath, setThumbnailPath] = useState("");
     const [initialRecipeFiles, setinitialRecipeFiles] = useState<File[]>([]);
     const [files, setFiles] = useState<File[]>([]);
-    const [fileObjects, setFileObjects] = useState<ExtFile[]>([]);
+    const [fileObjects, setFileObjects] = useState<string[]>([]);
     const [steps, setSteps] = useState<string[]>([""]);
     const [links, setLinks] = useState<string[]>([""]);
     const [ingredients, setIngredients] = useState<IngredientGroup[]>([{group: "", items: [{name: "", amount: ""}]}]);
@@ -90,7 +90,7 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
     }, [show, mode, initialRecipe]);
 
     async function initializeFields(recipe: Recipe): Promise<void> {
-        const recipeFiles = await urlsToFiles(recipe.files?.map(f => f.fileUrl) ?? []);
+        const recipeFiles = await urlsToFiles(recipe.files ?? []);
         setName(recipe.name);
         setBook(recipe.book ?? "");
         setTagsRaw(recipe.tags ? recipe.tags.join(",") : "");
@@ -182,11 +182,11 @@ export default function AddEditRecipeModal({show, onClose, addRecipe, updateReci
                 uploadedThumbnailPath = await uploadImage(thumbnail);
                 setThumbnailPath(uploadedThumbnailPath);
             }
-            const uploadedFiles: ExtFile[] = [...fileObjects];
+            const uploadedFiles: string[] = [...fileObjects];
             for (const file of files) {
                 if (!initialRecipeFiles.includes(file)) {
                     const res = await uploadFile(file);
-                    uploadedFiles.push({fileUrl: res});
+                    uploadedFiles.push(res);
 
                 }
             }

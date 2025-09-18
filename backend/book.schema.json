@@ -45,18 +45,9 @@
     },
     "files": {
       "type": "array",
-      "description": "Optional file references with metadata.",
+      "description": "Optional file references.",
       "items": {
-        "type": "object",
-        "properties": {
-          "fileUrl": {
-            "type": "string",
-            "description": "URL or path to the file"
-          }
-        },
-        "required": [
-          "fileUrl"
-        ]
+        "type": "string"
       }
     },
     "thumbnail": {

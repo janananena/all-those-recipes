@@ -14,18 +14,13 @@ export interface Review {
     comment?: string;
 }
 
-export interface ExtFile {
-    fileUrl: string;
-    fileFulltext?: string;
-}
-
 export interface NewRecipe {
     name: string;
     ingredients?: IngredientGroup[];
     steps?: string[];
     tags?: string[];
     links?: string[];
-    files?: ExtFile[];
+    files?: string[];
     thumbnail?: string;
     reviews?: Review[];
     book?: string;

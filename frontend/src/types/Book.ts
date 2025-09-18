@@ -1,9 +1,5 @@
 import type {Review} from "./Recipe.ts";
 
-export interface BookFile {
-    fileUrl: string;
-}
-
 export interface Book {
     id: string;
     name: string;
@@ -11,7 +7,7 @@ export interface Book {
     tags?: string[];
     links?: string[];
     recipes?: string[];
-    files?: BookFile[];
+    files?: string[];
     thumbnail?: string;
     reviews?: Review[];
 }
