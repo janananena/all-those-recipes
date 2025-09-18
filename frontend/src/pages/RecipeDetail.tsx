@@ -257,7 +257,7 @@ const RecipeDetail = () => {
                 </Card.Body>
 
                 <Card.Body>
-                    {recipe.files?.length && (
+                    {recipe.files && recipe.files.length > 0 && (
                         <>
                             <Card.Subtitle className="text-start mb-2">{t("recipe.files")}</Card.Subtitle>
                             <ListGroup>

@@ -183,7 +183,7 @@ export default function BookDetail() {
                     )}
                 </Card.Body>
                 <Card.Body>
-                    {book.files?.length && (
+                    {book.files && book.files.length > 0 && (
                         <>
                             <Card.Subtitle className="text-start mb-2">{t("book.files")}</Card.Subtitle>
                             <ListGroup>
