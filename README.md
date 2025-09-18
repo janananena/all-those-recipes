@@ -12,6 +12,9 @@ Filter for tags or enter search queries
 See and edit all parts of a recipe
 ![recipe details](imgs/recipe.png)
 
+Fill ingredients and steps from the thumbnail with one button click
+![recipe extracted](imgs/recipe-extracted.png)
+
 ## All Tags
 Manage available tags, group them, and decide which should be clickable where in the recipe search
 ![tag overview](imgs/tags.png)
