@@ -73,7 +73,8 @@
     "deleteConfirmation": "Sicher, dass {{user}} gelöscht werden soll?",
     "username": "Benutzer",
     "isUsermanager": "User Manager",
-    "isAdmin": "Admin"
+    "isAdmin": "Admin",
+    "isAiUser": "AI User"
   },
   "user": {
     "add": "Neuen Benutzer hinzufügen",

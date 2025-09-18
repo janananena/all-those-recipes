@@ -73,7 +73,8 @@
     "deleteConfirmation": "Are you sure you want to delete {{user}}?",
     "username": "User",
     "isUsermanager": "Usermanager",
-    "isAdmin": "Admin"
+    "isAdmin": "Admin",
+    "isAiUser": "AI User"
   },
   "user": {
     "add": "Add new User",

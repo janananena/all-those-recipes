@@ -93,7 +93,8 @@ export default function AllUsers() {
             <Table striped hover responsive className="text-muted">
                 <thead>
                 <tr>
-                    <th style={{width: '70%'}} className="text-start text-muted">{t("users.username")}</th>
+                    <th style={{width: '60%'}} className="text-start text-muted">{t("users.username")}</th>
+                    <th style={{width: '10%'}} className="text-muted text-nowrap">{t("users.isAiUser")}</th>
                     <th style={{width: '10%'}} className="text-muted text-nowrap">{t("users.isUsermanager")}</th>
                     {isAdmin && <th style={{width: '10%'}} className="text-muted">{t("users.isAdmin")}</th>}
                     {isAdmin && <th style={{width: '10%'}}/>}
@@ -103,11 +104,19 @@ export default function AllUsers() {
                 {users.map((u) => {
                     const userIsAdmin = u.roles.includes("admin");
                     const userIsManager = u.roles.includes("usermanager");
+                    const userIsAiUser = u.roles.includes("ai-user");
                     return (
                         <tr key={u.username}>
                             <td className="text-start text-muted">
                                 <i className="bi bi-person" style={{color: 'var(--my-blue)'}}></i>{" "}
                                 {u.username}
+                            </td>
+                            <td>
+                                <Form.Check
+                                    type="checkbox"
+                                    checked={userIsAiUser}
+                                    onChange={(e) => toggleRole(u.username, "ai-user", e.target.checked)}
+                                />
                             </td>
                             <td>
                                 <Form.Check
