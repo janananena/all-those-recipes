@@ -3,13 +3,14 @@ import fs from 'fs';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import {fileURLToPath} from 'url';
-import {dirname, join} from 'path';
+import path, {dirname, join} from 'path';
 import express from 'express';
 import multer from 'multer';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
+import axios from "axios";
 
 dotenv.config();
 
@@ -76,20 +77,20 @@ const authMiddleware = (req, res, next) => {
 function requireRole(role) {
     return (req, res, next) => {
         const userId = req.user;
-        if(!userId){
+        if (!userId) {
             console.warn("No userId given.");
             return res.status(401).json({message: "Unauthorized."});
         }
         const roles = req.roles;
 
-        if(roles.includes("admin")){
+        if (roles.includes("admin")) {
             console.log("Admin can pass.");
             return next();
         }
 
         if (!roles?.includes(role)) {
             console.log(`User ${userId} does not have required role ${role}.`);
-            return res.status(403).json({ error: "Forbidden: Insufficient roles." });
+            return res.status(403).json({error: "Forbidden: Insufficient roles."});
         }
         console.log(`User ${userId}: found required role ${role}.`);
         next();
@@ -130,14 +131,152 @@ function sanitizeFilename(filename) {
     return filename;
 }
 
-server.get("/ai-config.json", (req, res) => {
-    res.json({
-        googleVisionApiKey: process.env.GOOGLE_VISION_API_KEY,
-        googlePalmApiKey: process.env.GOOGLE_PALM_API_KEY,
-        ingredientPrompt: process.env.INGREDIENT_PROMPT,
-        stepsPrompt: process.env.STEPS_PROMPT
-    });
+server.post("/extract-recipe-from-image", async (req, res) => {
+    const {recipeId, fileUrl} = req.body;
+
+    const ingredientPrompt = process.env.INGREDIENT_PROMPT;
+    const stepsPrompt = process.env.STEPS_PROMPT;
+    const googleVisionApiKey = process.env.GOOGLE_VISION_API_KEY;
+    const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
+
+    try {
+        //
+        // 1. Read image from uploads folder
+        //
+        const filePath = path.join(uploadFolder, path.basename(fileUrl));
+        const fileBuffer = fs.readFileSync(filePath);
+        const base64 = fileBuffer.toString("base64");
+
+        //
+        // 2. Google Vision OCR
+        //
+        const visionRes = await axios.post(
+            `https://vision.googleapis.com/v1/images:annotate?key=${googleVisionApiKey}`,
+            {
+                requests: [
+                    {
+                        image: {content: base64},
+                        features: [{type: "TEXT_DETECTION"}],
+                    },
+                ],
+            },
+            {
+                headers: {
+                    Authorization: '',
+                }
+            }
+        );
+        // console.log('Vision API response:', JSON.stringify(visionRes.data, null, 2));
+
+        const fulltext =
+            visionRes.data.responses?.[0]?.fullTextAnnotation?.text ?? "";
+
+        //
+        // 3. Gemini: extract ingredients
+        //
+        const ingredientPromptFull = `${ingredientPrompt}${fulltext}`;
+        const ingRes = await fetch(
+            "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": googlePalmKey
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        role: "user",
+                        parts: [{text: ingredientPromptFull}]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        maxOutputTokens: 10000,
+                        topP: 0.8,
+                        topK: 40,
+                    }
+                })
+            });
+        const result = await ingRes.json();
+
+        const ingText =
+            result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+        let ingredients = [];
+        try {
+            const start = ingText.indexOf("[");
+            const end = ingText.lastIndexOf("]");
+            const ingredientsJson = ingText.slice(start, end + 1);
+            ingredients = JSON.parse(ingredientsJson);
+            // console.log(`parsed ingredients: ${ingredients}`);
+        } catch (err) {
+            console.error("Failed to parse ingredients JSON:", err);
+        }
+
+        //
+        // 4. Gemini: extract steps
+        //
+        const stepsPromptFull = `${stepsPrompt}\nRecipe name: ${recipeId}\nText:${fulltext}`;
+        const stepsRes = await fetch(
+            "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": googlePalmKey
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        role: "user",
+                        parts: [{text: stepsPromptFull}]
+                    }],
+                    generationConfig: {
+                        temperature: 0.2,
+                        maxOutputTokens: 10000,
+                        topP: 0.8,
+                        topK: 40,
+                    }
+                })
+            });
+        const stepsResult = await stepsRes.json();
+
+        const stepsText =
+            stepsResult.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+        let steps = [];
+        try {
+            const start = stepsText.indexOf("[");
+            const end = stepsText.lastIndexOf("]");
+            steps = JSON.parse(stepsText.slice(start, end + 1));
+            // console.log(`parsed steps: ${steps}`);
+        } catch (err) {
+            console.error("Failed to parse steps JSON:", err);
+        }
+
+        //
+        // 5. Update recipe in db.json
+        //
+        const recipe = router.db.get("recipes").find({ id: recipeId}).value();
+        if (!recipe) {
+            return res.status(404).json({error: "Recipe not found"});
+        }
+
+        const recipeIngredients = [{group: "extracted", items: ingredients}];
+
+        router.db.get("recipes").find({ id: recipeId}).assign({
+            ingredients: recipeIngredients,
+            steps: steps
+        }).write();
+
+        //
+        // 6. Return updated recipe
+        //
+        res.json({...recipe, ingredients: recipeIngredients, steps: steps});
+    } catch (err) {
+        console.error("Processing recipe failed:", err);
+        res.status(500).json({error: "Processing recipe failed"});
+    }
 });
+
 
 server.post('/uploadImage', upload.single('image'), async (req, res) => {
     try {
@@ -335,13 +474,13 @@ server.post('/changePassword', async (req, res) => {
 });
 
 server.patch('/users/:username/roles', async (req, res) => {
-    const { username } = req.params;
-    const { roles } = req.body; // expecting an array of strings
+    const {username} = req.params;
+    const {roles} = req.body; // expecting an array of strings
     const requesterRoles = req.roles || [];
 
     if (!Array.isArray(roles)) {
         console.log(`patch roles user ${username} roles ${roles}`);
-        return res.status(400).json({ error: "Roles must be an array" });
+        return res.status(400).json({error: "Roles must be an array"});
     }
 
     try {
@@ -350,7 +489,7 @@ server.patch('/users/:username/roles', async (req, res) => {
 
         const user = users.find(u => u.username === username);
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            return res.status(404).json({error: "User not found"});
         }
 
         // 🔒 Permission checks
@@ -359,19 +498,19 @@ server.patch('/users/:username/roles', async (req, res) => {
             user.roles = roles;
         } else if (requesterRoles.includes("usermanager")) {
             if (roles.includes("admin")) {
-                return res.status(403).json({ error: "Only admin can assign admin role." });
+                return res.status(403).json({error: "Only admin can assign admin role."});
             }
             user.roles = roles;
         } else {
             console.log(`User ${req.user} does not have required role usermanager.`);
-            return res.status(403).json({ error: "Forbidden: insufficient permissions." });
+            return res.status(403).json({error: "Forbidden: insufficient permissions."});
         }
 
         await fs.promises.writeFile(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
-        res.json({ message: `Roles updated for ${username}`, roles: user.roles });
+        res.json({message: `Roles updated for ${username}`, roles: user.roles});
     } catch (err) {
         console.error("Error updating roles:", err);
-        res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({error: "Internal server error"});
     }
 });
 
