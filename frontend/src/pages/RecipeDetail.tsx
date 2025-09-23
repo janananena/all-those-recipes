@@ -165,7 +165,7 @@ const RecipeDetail = () => {
                         {
                             isAiUser && recipe.thumbnail &&
                             <Col xs="auto">
-                                <AiButton recipeId={recipe.id} fileUrl={recipe.thumbnail} key={`aiButtons-thumb-${recipe.id}`}/>
+                                <AiButton recipeId={recipe.id} fileUrl={recipe.thumbnail} key={`aiButtons-thumb-${recipe.id}`} isImage={true}/>
                             </Col>
                         }
                         {recipe.tags && recipe.tags.length > 0 && (
@@ -263,9 +263,10 @@ const RecipeDetail = () => {
                             <ListGroup>
                                 {recipe.files.map((file, i) => {
                                     if (!file) return null;
-                                    const validExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+                                    const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
                                     const lowerName = file.toLowerCase();
-                                    const isImage = validExtensions.some(ext => lowerName.endsWith(ext));
+                                    const isImage = validImageExtensions.some(ext => lowerName.endsWith(ext));
+                                    const isPdf = lowerName.endsWith('.pdf');
                                     // Extract just the filename (without path and extension)
                                     const fileName = file
                                         .split('/').pop()!                // "1757936365845-Screenshot-from-2024-12-27-23-38-07.png"
@@ -279,7 +280,8 @@ const RecipeDetail = () => {
                                             <a href={file} download>
                                                 {fileName}
                                             </a>
-                                            {isImage && <AiButton recipeId={recipe.id} fileUrl={file}/>}
+                                            {isImage && <AiButton recipeId={recipe.id} fileUrl={file} isImage={true}/>}
+                                            {isPdf && <AiButton recipeId={recipe.id} fileUrl={file} isImage={false}/>}
                                         </ListGroup.Item>
                                     );
                                 })}

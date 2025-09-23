@@ -12,6 +12,9 @@ import jwt from 'jsonwebtoken';
 import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 
+import pdf from "pdf-parse";
+import {fromBuffer} from "pdf2pic";
+
 dotenv.config();
 
 const app = express(); // top-level app
@@ -45,7 +48,6 @@ const validateBooks = ajv.compile(booksSchema);
 // Middleware
 server.use(middlewares);
 
-server.use(express.json());
 server.use(jsonServer.bodyParser);
 
 // Health check
@@ -131,146 +133,215 @@ function sanitizeFilename(filename) {
     return filename;
 }
 
+async function extractIngredients(fulltext) {
+    const ingredientPrompt = process.env.INGREDIENT_PROMPT;
+    const ingredientPromptFull = `${ingredientPrompt}${fulltext}`;
+    const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
+    const ingRes = await fetch(
+        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": googlePalmKey
+            },
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{text: ingredientPromptFull}]
+                }],
+                generationConfig: {
+                    temperature: 0.2,
+                    maxOutputTokens: 10000,
+                    topP: 0.8,
+                    topK: 40,
+                }
+            })
+        });
+    const result = await ingRes.json();
+
+    const ingText =
+        result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+    let ingredients = [];
+    try {
+        const start = ingText.indexOf("[");
+        const end = ingText.lastIndexOf("]");
+        const ingredientsJson = ingText.slice(start, end + 1);
+        ingredients = JSON.parse(ingredientsJson);
+        // console.log(`parsed ingredients: ${ingredients}`);
+    } catch (err) {
+        console.error("Failed to parse ingredients JSON:", err);
+    }
+    return ingredients;
+}
+
+async function extractSteps(recipeId, fulltext) {
+    const stepsPrompt = process.env.STEPS_PROMPT;
+    const stepsPromptFull = `${stepsPrompt}\nRecipe name: ${recipeId}\nText:${fulltext}`;
+    const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
+    const stepsRes = await fetch(
+        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": googlePalmKey
+            },
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{text: stepsPromptFull}]
+                }],
+                generationConfig: {
+                    temperature: 0.2,
+                    maxOutputTokens: 10000,
+                    topP: 0.8,
+                    topK: 40,
+                }
+            })
+        });
+    const stepsResult = await stepsRes.json();
+
+    const stepsText =
+        stepsResult.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+    let steps = [];
+    try {
+        const start = stepsText.indexOf("[");
+        const end = stepsText.lastIndexOf("]");
+        steps = JSON.parse(stepsText.slice(start, end + 1));
+        // console.log(`parsed steps: ${steps}`);
+    } catch (err) {
+        console.error("Failed to parse steps JSON:", err);
+    }
+    return steps;
+}
+
+async function extractTextFromBase64(base64) {
+    const googleVisionApiKey = process.env.GOOGLE_VISION_API_KEY;
+    const visionRes = await axios.post(
+        `https://vision.googleapis.com/v1/images:annotate?key=${googleVisionApiKey}`,
+        {
+            requests: [
+                {
+                    image: {content: base64},
+                    features: [{type: "TEXT_DETECTION"}],
+                },
+            ],
+        },
+        {
+            headers: {
+                Authorization: '',
+            }
+        }
+    );
+    // console.log('Vision API response:', JSON.stringify(visionRes.data, null, 2));
+
+    return visionRes.data.responses?.[0]?.fullTextAnnotation?.text ?? "";
+}
+
+async function extractImageText(fileUrl) {
+    const filePath = path.join(uploadFolder, path.basename(fileUrl));
+    const fileBuffer = fs.readFileSync(filePath);
+    const base64 = fileBuffer.toString("base64");
+
+    // Google Vision OCR
+    return await extractTextFromBase64(base64);
+}
+
+async function updateRecipe(recipeId, fulltext) {
+    const ingredients = await extractIngredients(fulltext);
+
+    const steps = await extractSteps(recipeId, fulltext);
+
+    // Update recipe in db.json
+    const recipe = router.db.get("recipes").find({id: recipeId}).value();
+    if (!recipe) {
+        return res.status(404).json({error: "Recipe not found"});
+    }
+
+    const recipeIngredients = [{group: "extracted", items: ingredients}];
+
+    router.db.get("recipes").find({id: recipeId}).assign({
+        ingredients: recipeIngredients,
+        steps: steps
+    }).write();
+
+    // Return updated recipe
+    return {...recipe, ingredients: recipeIngredients, steps: steps};
+}
+
+async function pdfToImagesBase64(pdfBuffer) {
+    const converter = fromBuffer(pdfBuffer, {
+        density: 300,       // DPI
+        format: "png",      // output format
+        width: 1200,
+        height: 1600
+    });
+
+    const images = [];
+
+    // pdf2pic uses .bulk() or .convert()
+    const converted = await converter.bulk(-1, {responseType: "base64"});
+    // -1 means all pages
+
+    for (const page of converted) {
+        images.push(page.base64); // each page has a base64 string
+    }
+
+    return images;
+}
+
+server.post("/extract-recipe-from-pdf", async (req, res) => {
+    const {recipeId, fileUrl} = req.body;
+
+    try {
+        const filePath = path.join(uploadFolder, path.basename(fileUrl));
+        if (!filePath.toLowerCase().endsWith(".pdf")) {
+            return res.status(400).json({error: "Not a pdf."});
+        }
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({error: "PDF file not found on server."});
+        }
+        const fileBuffer = fs.readFileSync(filePath);
+
+        if (!fileBuffer || fileBuffer.length === 0) {
+            return res.status(400).json({error: "PDF file is empty."});
+        }
+
+        const data = await pdf(fileBuffer);
+        const pdfText = data.text.trim() || "";
+
+        console.log("pdf text: ", pdfText);
+        if (pdfText !== '') {
+            const newRecipe = await updateRecipe(recipeId, pdfText);
+            res.json(newRecipe);
+        } else {
+            const images = await pdfToImagesBase64(fileBuffer);
+            let texts = [];
+            for (const i of images) {
+                texts.push(await extractTextFromBase64(i));
+            }
+            const fulltext = texts.join(' ');
+            console.log("pdf image text: ", fulltext);
+            const newRecipe = await updateRecipe(recipeId, fulltext);
+            res.json(newRecipe);
+        }
+    } catch (err) {
+        console.error("Processing recipe failed:", err);
+        res.status(500).json({error: "Processing recipe failed"});
+    }
+
+});
+
 server.post("/extract-recipe-from-image", async (req, res) => {
     const {recipeId, fileUrl} = req.body;
 
-    const ingredientPrompt = process.env.INGREDIENT_PROMPT;
-    const stepsPrompt = process.env.STEPS_PROMPT;
-    const googleVisionApiKey = process.env.GOOGLE_VISION_API_KEY;
-    const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
-
     try {
-        //
-        // 1. Read image from uploads folder
-        //
-        const filePath = path.join(uploadFolder, path.basename(fileUrl));
-        const fileBuffer = fs.readFileSync(filePath);
-        const base64 = fileBuffer.toString("base64");
-
-        //
-        // 2. Google Vision OCR
-        //
-        const visionRes = await axios.post(
-            `https://vision.googleapis.com/v1/images:annotate?key=${googleVisionApiKey}`,
-            {
-                requests: [
-                    {
-                        image: {content: base64},
-                        features: [{type: "TEXT_DETECTION"}],
-                    },
-                ],
-            },
-            {
-                headers: {
-                    Authorization: '',
-                }
-            }
-        );
-        // console.log('Vision API response:', JSON.stringify(visionRes.data, null, 2));
-
-        const fulltext =
-            visionRes.data.responses?.[0]?.fullTextAnnotation?.text ?? "";
-
-        //
-        // 3. Gemini: extract ingredients
-        //
-        const ingredientPromptFull = `${ingredientPrompt}${fulltext}`;
-        const ingRes = await fetch(
-            "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-goog-api-key": googlePalmKey
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        role: "user",
-                        parts: [{text: ingredientPromptFull}]
-                    }],
-                    generationConfig: {
-                        temperature: 0.2,
-                        maxOutputTokens: 10000,
-                        topP: 0.8,
-                        topK: 40,
-                    }
-                })
-            });
-        const result = await ingRes.json();
-
-        const ingText =
-            result.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-        let ingredients = [];
-        try {
-            const start = ingText.indexOf("[");
-            const end = ingText.lastIndexOf("]");
-            const ingredientsJson = ingText.slice(start, end + 1);
-            ingredients = JSON.parse(ingredientsJson);
-            // console.log(`parsed ingredients: ${ingredients}`);
-        } catch (err) {
-            console.error("Failed to parse ingredients JSON:", err);
-        }
-
-        //
-        // 4. Gemini: extract steps
-        //
-        const stepsPromptFull = `${stepsPrompt}\nRecipe name: ${recipeId}\nText:${fulltext}`;
-        const stepsRes = await fetch(
-            "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-goog-api-key": googlePalmKey
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        role: "user",
-                        parts: [{text: stepsPromptFull}]
-                    }],
-                    generationConfig: {
-                        temperature: 0.2,
-                        maxOutputTokens: 10000,
-                        topP: 0.8,
-                        topK: 40,
-                    }
-                })
-            });
-        const stepsResult = await stepsRes.json();
-
-        const stepsText =
-            stepsResult.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-        let steps = [];
-        try {
-            const start = stepsText.indexOf("[");
-            const end = stepsText.lastIndexOf("]");
-            steps = JSON.parse(stepsText.slice(start, end + 1));
-            // console.log(`parsed steps: ${steps}`);
-        } catch (err) {
-            console.error("Failed to parse steps JSON:", err);
-        }
-
-        //
-        // 5. Update recipe in db.json
-        //
-        const recipe = router.db.get("recipes").find({ id: recipeId}).value();
-        if (!recipe) {
-            return res.status(404).json({error: "Recipe not found"});
-        }
-
-        const recipeIngredients = [{group: "extracted", items: ingredients}];
-
-        router.db.get("recipes").find({ id: recipeId}).assign({
-            ingredients: recipeIngredients,
-            steps: steps
-        }).write();
-
-        //
-        // 6. Return updated recipe
-        //
-        res.json({...recipe, ingredients: recipeIngredients, steps: steps});
+        const fulltext = await extractImageText(fileUrl);
+        const newRecipe = await updateRecipe(recipeId, fulltext);
+        res.json(newRecipe);
     } catch (err) {
         console.error("Processing recipe failed:", err);
         res.status(500).json({error: "Processing recipe failed"});

@@ -1,7 +1,8 @@
 {
   "appName": "All Those Recipes",
   "ai": {
-    "extract": "Extract from image"
+    "extractFromImage": "Extract from image",
+    "extractFromPdf": "Extract from pdf"
   },
   "nav": {
     "recipes": "All Recipes",

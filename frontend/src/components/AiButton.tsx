@@ -1,15 +1,16 @@
 import React, {useContext, useState} from "react";
 import {Button, Spinner} from "react-bootstrap";
 import {RecipeContext} from "../context/RecipeContext.tsx";
-import {processRecipe} from "../api/aiImageContent.ts";
+import {processRecipeImage, processRecipePdf} from "../api/aiImageContent.ts";
 import {useTranslation} from "react-i18next";
 
 interface AiButtonProps {
     recipeId: string;
     fileUrl: string;
+    isImage: boolean;
 }
 
-const AiButton: React.FC<AiButtonProps> = ({recipeId, fileUrl}: AiButtonProps) => {
+const AiButton: React.FC<AiButtonProps> = ({recipeId, fileUrl, isImage}: AiButtonProps) => {
 
     const [loading, setLoading] = useState<boolean>(false);
     const {recipes, updateRecipe} = useContext(RecipeContext);
@@ -27,10 +28,15 @@ const AiButton: React.FC<AiButtonProps> = ({recipeId, fileUrl}: AiButtonProps) =
         );
     }
 
-    async function calcThumbnail() {
+    async function calcUpdatedRecipeFromImage() {
         if (!recipe) return;
         setLoading(true);
-        const res = await processRecipe(recipeId, fileUrl);
+        let res;
+        if(isImage){
+            res = await processRecipeImage(recipeId, fileUrl);
+        } else {
+            res = await processRecipePdf(recipeId, fileUrl);
+        }
         updateRecipe(res);
         setLoading(false);
         console.log(`updated recipe w/ ingredients and steps, recipe: ${recipe.id}`);
@@ -47,9 +53,9 @@ const AiButton: React.FC<AiButtonProps> = ({recipeId, fileUrl}: AiButtonProps) =
         <Button
             variant="secondary"
             disabled={disableThumbnailExtraction || loading}
-            onClick={calcThumbnail}
+            onClick={calcUpdatedRecipeFromImage}
         >
-            <i className="bi bi-magic"></i> {renderButtonContent(t("ai.extract"))}
+            <i className="bi bi-magic"></i> {renderButtonContent(isImage ? t("ai.extractFromImage") : t("ai.extractFromPdf"))}
         </Button>
     );
 };

@@ -17,13 +17,17 @@ COPY favorites.schema.json .
 COPY db.json ./
 COPY users ./users
 COPY migrations ./migrations
+COPY test/data ./test/data
 
 RUN mkdir -p public/uploads
 
+# Final stage
 FROM node:22-alpine
 
-WORKDIR /app
+# Install GraphicsMagick on Alpine
+RUN apk add --no-cache graphicsmagick
 
+WORKDIR /app
 COPY --from=base /app /app
 
 # Expose port
