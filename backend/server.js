@@ -133,9 +133,9 @@ function sanitizeFilename(filename) {
     return filename;
 }
 
-async function extractIngredients(fulltext) {
+async function extractIngredients(recipeName, fulltext) {
     const ingredientPrompt = process.env.INGREDIENT_PROMPT;
-    const ingredientPromptFull = `${ingredientPrompt}${fulltext}`;
+    const ingredientPromptFull = `${ingredientPrompt}\nRecipe name: ${recipeName}\nText:${fulltext}`;
     const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
     const ingRes = await fetch(
         "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
@@ -176,9 +176,9 @@ async function extractIngredients(fulltext) {
     return ingredients;
 }
 
-async function extractSteps(recipeId, fulltext) {
+async function extractSteps(recipeName, fulltext) {
     const stepsPrompt = process.env.STEPS_PROMPT;
-    const stepsPromptFull = `${stepsPrompt}\nRecipe name: ${recipeId}\nText:${fulltext}`;
+    const stepsPromptFull = `${stepsPrompt}\nRecipe name: ${recipeName}\nText:${fulltext}`;
     const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
     const stepsRes = await fetch(
         "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
@@ -251,18 +251,18 @@ async function extractImageText(fileUrl) {
 }
 
 async function updateRecipe(recipeId, fulltext) {
-    const ingredients = await extractIngredients(fulltext);
 
-    const steps = await extractSteps(recipeId, fulltext);
-
-    // Update recipe in db.json
     const recipe = router.db.get("recipes").find({id: recipeId}).value();
     if (!recipe) {
         return res.status(404).json({error: "Recipe not found"});
     }
+    const ingredients = await extractIngredients(recipe.name, fulltext);
+
+    const steps = await extractSteps(recipe.name, fulltext);
 
     const recipeIngredients = [{group: "extracted", items: ingredients}];
 
+    // Update recipe in db.json
     router.db.get("recipes").find({id: recipeId}).assign({
         ingredients: recipeIngredients,
         steps: steps
