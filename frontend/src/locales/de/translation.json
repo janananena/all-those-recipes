@@ -5,6 +5,11 @@
     "extractFromPdf": "Aus Pdf erkennen"
   },
   "shopping": {
+    "noLists": "Noch keine Einkaufslisten vorhanden",
+    "date": "Erstellt am",
+    "recipes": "beinhaltet Rezepte",
+    "file": "Datei",
+    "notes": "Notizen",
     "actions": {
       "createList": "Einkaufsliste erstellen"
     },
@@ -24,7 +29,9 @@
     "tags": "Alle Tags",
     "users": "Alle Benutzer",
     "books": "Alle Bücher",
+    "myLists": "Meine Listen",
     "favorites": "Meine Favoriten",
+    "shopping": "Einkaufslisten",
     "addRecipe": "+ Rezept",
     "addTag": "+ Tag",
     "addUser": "+ Benutzer",

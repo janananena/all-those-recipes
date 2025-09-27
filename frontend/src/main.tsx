@@ -10,6 +10,7 @@ import {UsersProvider} from "./context/UsersContext.tsx";
 import './i18n';
 import {FavoritesProvider} from "./context/FavoritesContext.tsx";
 import {BooksProvider} from "./context/BooksContext.tsx";
+import {ShoppingListsProvider} from "./context/ShoppingListsContext.tsx";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <FavoritesProvider>
                     <RecipeProvider>
                         <BooksProvider>
-                            <App/>
+                            <ShoppingListsProvider>
+                                <App/>
+                            </ShoppingListsProvider>
                         </BooksProvider>
                     </RecipeProvider>
                 </FavoritesProvider>

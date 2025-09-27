@@ -28,7 +28,10 @@
       "items": {
         "$ref": "https://example.com/book.schema.json"
       }
+    },
+    "shoppingLists": {
+      "$ref": "https://example.com/shoppingLists.schema.json"
     }
   },
-  "required": ["recipes", "tags", "favorites", "books"]
+  "required": ["recipes", "tags", "favorites", "books", "shoppingLists"]
 }

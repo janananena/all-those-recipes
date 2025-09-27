@@ -29,6 +29,8 @@ const rawFavoritesSchema = await fs.promises.readFile(new URL('./favorites.schem
 const favoritesSchema = JSON.parse(rawFavoritesSchema);
 const rawBooksSchema = await fs.promises.readFile(new URL('./book.schema.json', import.meta.url));
 const booksSchema = JSON.parse(rawBooksSchema);
+const rawShoppingListsSchema = await fs.promises.readFile(new URL('./shoppingLists.schema.json', import.meta.url));
+const shoppingListsSchema = JSON.parse(rawShoppingListsSchema);
 
 const router = jsonServer.router(process.env.DATABASE_FILE);
 const middlewares = jsonServer.defaults();
@@ -40,11 +42,13 @@ ajv.addSchema(recipeSchema, 'https://example.com/recipe.schema.json');
 ajv.addSchema(tagSchema, 'https://example.com/tag.schema.json');
 ajv.addSchema(favoritesSchema, 'https://example.com/favorites.schema.json');
 ajv.addSchema(booksSchema, 'https://example.com/book.schema.json');
+ajv.addSchema(shoppingListsSchema, 'https://example.com/shoppingLists.schema.json');
 
 const validateRecipe = ajv.compile(recipeSchema);
 const validateTag = ajv.compile(tagSchema);
 const validateFavorites = ajv.compile(favoritesSchema);
 const validateBooks = ajv.compile(booksSchema);
+const validateShoppingLists = ajv.compile(shoppingListsSchema);
 
 // Middleware
 server.use(middlewares);
@@ -319,6 +323,20 @@ async function updateRecipe(recipeId, fulltext) {
     return {...recipe, ingredients: recipeIngredients, steps: steps};
 }
 
+async function addShoppingList(id, username, createdAt, recipeIds, listFileUrl){
+
+    const lists = router.db.get("shoppingLists").value();
+
+    router.db.get("shoppingLists").assign([...lists, {
+        id: id,
+        username: username,
+        createdAt: createdAt,
+        recipeIds: recipeIds,
+        listFileUrl: listFileUrl,
+        notes: ''
+    }]).write();
+}
+
 async function pdfToImagesBase64(pdfBuffer) {
     const converter = fromBuffer(pdfBuffer, {
         density: 300,       // DPI
@@ -470,7 +488,7 @@ function getCETTimestamp() {
     }).formatToParts(now);
 
     const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-    return `${map.year}-${map.month}-${map.day}-${map.hour}-${map.minute}-${map.second}`;
+    return {date: now, dateString: `${map.year}-${map.month}-${map.day}-${map.hour}-${map.minute}-${map.second}`};
 }
 
 server.post('/shopping-list', async (req, res) => {
@@ -518,7 +536,7 @@ server.post('/shopping-list', async (req, res) => {
         });
         const timestamp = getCETTimestamp();
         const username = req.user || "guest";
-        const fileName = `shopping_${username}_${timestamp}.pdf`;
+        const fileName = `shopping_${username}_${timestamp.dateString}.pdf`;
         const folderPath = join(__dirname, "public", "shopping-lists");
         if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
         const filePath = join(folderPath, fileName);
@@ -617,11 +635,12 @@ server.post('/shopping-list', async (req, res) => {
 
         doc.x = startX;
         doc.moveDown(1.5);
-        doc.fontSize(10).text(`Generated ${timestamp}`, {align: "left"});
+        doc.fontSize(10).text(`Generated ${timestamp.dateString}`, {align: "left"});
 
         doc.end();
 
-        writeStream.on("finish", () => {
+        writeStream.on("finish", async () => {
+            await addShoppingList(timestamp.dateString, username, timestamp.date, recipeIds, `/shopping-lists/${fileName}`);
             res.json({url: `/shopping-lists/${fileName}`});
         });
 
@@ -661,6 +680,9 @@ server.use((req, res, next) => {
         } else if (req.path.startsWith('/books')) {
             const valid = validateBooks(req.body);
             if (!valid) return res.status(400).json({errors: validateBooks.errors});
+        } else if (req.path.startsWith('/shoppingLists')) {
+            const valid = validateShoppingLists(req.body);
+            if (!valid) return res.status(400).json({errors: validateShoppingLists.errors});
         }
     }
     next();

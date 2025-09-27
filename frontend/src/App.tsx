@@ -14,6 +14,7 @@ import './App.css';
 import MyFavorites from "./pages/MyFavorites.tsx";
 import AllBooks from "./pages/AllBooks.tsx";
 import BookDetail from "./pages/BookDetail.tsx";
+import MyShoppingLists from "./pages/MyShoppingLists.tsx";
 
 const router = createBrowserRouter([
     {
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
             {
                 path: 'favorites',
                 element: <MyFavorites/>
+            },
+            {
+                path: 'shoppingLists',
+                element: <MyShoppingLists/>
             },
             {
                 path: 'books',

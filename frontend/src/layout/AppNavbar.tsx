@@ -69,9 +69,14 @@ export default function AppNavbar() {
                         <Nav.Link as={Link} to="/users" onClick={closeMenu}>
                             {t("nav.users")}
                         </Nav.Link>
-                        <Nav.Link as={Link} to="/favorites" onClick={closeMenu}>
-                            {t("nav.favorites")}
-                        </Nav.Link>
+                        <NavDropdown title={t("nav.myLists")} id="nav-dropdown-button">
+                            <NavDropdown.Item as={Link} to="/favorites" onClick={closeMenu}>
+                                {t("nav.favorites")}
+                            </NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/shoppingLists" onClick={closeMenu}>
+                                {t("nav.shopping")}
+                            </NavDropdown.Item>
+                        </NavDropdown>
                          <Nav.Link as={Link} to="/books" onClick={closeMenu}>
                             {t("nav.books")}
                         </Nav.Link>

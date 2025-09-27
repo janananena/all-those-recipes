@@ -5,6 +5,11 @@
     "extractFromPdf": "Extract from pdf"
   },
   "shopping": {
+    "noLists": "No shopping lists yet",
+    "date": "Created at",
+    "recipes": "includes recipes",
+    "file": "File",
+    "notes": "Notes",
     "actions": {
       "createList": "Create Shopping List"
     },
@@ -24,7 +29,9 @@
     "tags": "All Tags",
     "users": "All Users",
     "books": "All Books",
+    "myLists": "My Lists",
     "favorites": "My Favorites",
+    "shopping": "Shopping Lists",
     "addRecipe": "+ Recipe",
     "addTag": "+ Tag",
     "addUser": "+ User",

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/shoppingLists.schema.json",
+  "title": "UserShoppingList",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the user shopping list."
+    },
+    "username": {
+      "type": "string",
+      "description": "The name of the user"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date the list was created"
+    },
+    "recipeIds": {
+      "type": "array",
+      "description": "List of recipe IDs for this list",
+      "items": {
+        "type": "string"
+      }
+    },
+    "listFileUrl": {
+      "type": "string",
+      "description": "The shopping list pdf url"
+    },
+    "notes": {
+      "type": "string",
+      "description": "A free text field for the users comment"
+    }
+  },
+  "required": ["id", "username", "createdAt", "recipeIds", "listFileUrl"]
+}

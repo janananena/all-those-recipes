@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "addBooksIfMissing": "node migrations/addBooks.js",
-    "prestart": "npm run addBooksIfMissing",
+    "addShoppingListsIfMissing": "node migrations/addShoppingLists.js",
+    "prestart": "npm run addBooksIfMissing && npm run addShoppingListsIfMissing",
     "start": "node server.js",
     "reorderDbToReadable": "cp db.json archive/db.backup.json && node archive/reorder-recipe-props.js",
     "build": "docker build -t recipes-server .",
