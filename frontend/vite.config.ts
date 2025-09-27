@@ -20,6 +20,11 @@ export default defineConfig(() => {
                     target: `http://${backendHost}:3010`,
                     changeOrigin: true,
                     secure: false,
+                },
+                '/shopping-lists': {
+                    target: `http://${backendHost}:3010`,
+                    changeOrigin: true,
+                    secure: false,
                 }
             }
         }

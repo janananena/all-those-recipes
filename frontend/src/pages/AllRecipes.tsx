@@ -11,6 +11,7 @@ import {useFavorites} from "../context/FavoritesContext.tsx";
 import {BooksContext} from "../context/BooksContext.tsx";
 import {useTranslation} from "react-i18next";
 import {createRecipe} from "../api/recipes.ts";
+import {RecipeActionButtons} from "../components/RecipeActionButtons.tsx";
 
 export const AllRecipes = () => {
     const location = useLocation();
@@ -108,6 +109,7 @@ export const AllRecipes = () => {
 
     return (
         <Container className="my-4">
+            <RecipeActionButtons recipes={recipes}/>
             <TagSelector searchTags={searchTags} onSelect={addSearchTag} onClear={clearSearchTags}/>
             <SearchBar searchTags={searchTags} onAdd={addSearchTag} onRemove={removeSearchTag}/>
             <RecipeTable recipes={filteredRecipes} onSelect={goToDetail}/>

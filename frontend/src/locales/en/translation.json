@@ -4,6 +4,21 @@
     "extractFromImage": "Extract from image",
     "extractFromPdf": "Extract from pdf"
   },
+  "shopping": {
+    "actions": {
+      "createList": "Create Shopping List"
+    },
+    "modal": {
+      "title": "Create Shopping List",
+      "note": "Only recipes that already have ingredients are available here. If your recipe has no ingredients yet, open it in the details view and use the AI buttons to automatically fill them in.",
+      "searchPlaceholder": "Search recipes...",
+      "noResults": "No recipes found",
+      "selectedTitle": "Selected Recipes",
+      "emptySelection": "Nothing selected yet",
+      "cancel": "Cancel",
+      "generate": "Generate PDF"
+    }
+  },
   "nav": {
     "recipes": "All Recipes",
     "tags": "All Tags",

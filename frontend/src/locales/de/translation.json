@@ -4,6 +4,21 @@
     "extractFromImage": "Aus Bild erkennen",
     "extractFromPdf": "Aus Pdf erkennen"
   },
+  "shopping": {
+    "actions": {
+      "createList": "Einkaufsliste erstellen"
+    },
+    "modal": {
+      "title": "Einkaufsliste erstellen",
+      "note": "Nur Rezepte, die bereits Zutaten enthalten, sind hier verfügbar. Wenn dein Rezept noch keine Zutaten hat, öffne es in der Detailansicht und benutze die KI-Buttons, um sie automatisch zu ergänzen.",
+      "searchPlaceholder": "Rezepte suchen...",
+      "noResults": "Keine Rezepte gefunden",
+      "selectedTitle": "Ausgewählte Rezepte",
+      "emptySelection": "Noch nichts ausgewählt",
+      "cancel": "Abbrechen",
+      "generate": "PDF erstellen"
+    }
+  },
   "nav": {
     "recipes": "Alle Rezepte",
     "tags": "Alle Tags",

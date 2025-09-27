@@ -14,6 +14,7 @@ import axios from "axios";
 
 import pdf from "pdf-parse";
 import {fromBuffer} from "pdf2pic";
+import PDFDocument from "pdfkit";
 
 dotenv.config();
 
@@ -105,7 +106,9 @@ server.use(authMiddleware);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const uploadFolder = join(__dirname, 'public', 'uploads');
+const shoppingListFolder = join(__dirname, 'public', 'shopping-lists');
 if (!fs.existsSync(uploadFolder)) fs.mkdirSync(uploadFolder, {recursive: true});
+if (!fs.existsSync(shoppingListFolder)) fs.mkdirSync(shoppingListFolder, {recursive: true});
 
 const storage = multer.memoryStorage();
 const upload = multer({storage});
@@ -239,6 +242,50 @@ async function extractTextFromBase64(base64) {
     // console.log('Vision API response:', JSON.stringify(visionRes.data, null, 2));
 
     return visionRes.data.responses?.[0]?.fullTextAnnotation?.text ?? "";
+}
+
+async function combineIngredients(ingredientList) {
+    const cleanupPrompt = process.env.CLEANUP_INGREDIENTS_PROMPT;
+    const cleanupPromptFull = `${cleanupPrompt}\nIngredient list: ${JSON.stringify(ingredientList)}`;
+    const googlePalmKey = process.env.GOOGLE_PALM_API_KEY;
+    const ingredientsRes = await fetch(
+        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-goog-api-key": googlePalmKey
+            },
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{text: cleanupPromptFull}]
+                }],
+                generationConfig: {
+                    temperature: 0.2,
+                    maxOutputTokens: 15000,
+                    topP: 0.8,
+                    topK: 40,
+                }
+            })
+        });
+    const ingredientsResult = await ingredientsRes.json();
+    // console.log(`google res ${ingredientsRes}`, ingredientsRes);
+
+    const ingredientsText =
+        ingredientsResult.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    console.log(`got improved ingredients from ai: ${ingredientsText}`);
+
+    let ingredients = [];
+    try {
+        const start = ingredientsText.indexOf("[");
+        const end = ingredientsText.lastIndexOf("]");
+        ingredients = JSON.parse(ingredientsText.slice(start, end + 1));
+        // console.log(`parsed ingredients: ${ingredients}`);
+    } catch (err) {
+        console.error("Failed to parse improved ingredients JSON:", err);
+    }
+    return ingredients;
 }
 
 async function extractImageText(fileUrl) {
@@ -383,6 +430,209 @@ server.post('/uploadFile', upload.single('file'), async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({error: 'Failed to upload file'});
+    }
+});
+
+// Helper: capitalize ingredient name
+const capitalizeIngredientName = (name) => {
+    return name
+        .split(" ")
+        .map(w => w[0] ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "")
+        .join(" ");
+};
+
+// Helper: normalize amounts spacing ("100g" -> "100 g")
+const normalizeAmountSpacing = (amount) => {
+    return (amount || "").replace(/([\d.,]+)\s*(\D+)/, "$1 $2").trim();
+};
+
+async function processIngredients(ingredientRows) {
+    console.log("processing ingredients")
+    for (let row of ingredientRows) {
+        row.name = capitalizeIngredientName(row.name);
+        row.amount = normalizeAmountSpacing(row.amount);
+        // console.log(`changed name to ${row.name} and amount to ${row.amount}`);
+    }
+
+    return await combineIngredients(ingredientRows);
+}
+
+function getCETTimestamp() {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat("de-DE", {
+        timeZone: "Europe/Berlin",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    }).formatToParts(now);
+
+    const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+    return `${map.year}-${map.month}-${map.day}-${map.hour}-${map.minute}-${map.second}`;
+}
+
+server.post('/shopping-list', async (req, res) => {
+    try {
+        const recipeIds = req.body.recipeIds;
+        if (!Array.isArray(recipeIds) || recipeIds.length === 0) {
+            console.log(`error! request is ${req}`, req);
+            return res.status(400).json({error: "recipes array is required"});
+        }
+
+        // Load recipes from DB
+        const recipes = router.db.get("recipes");
+        const selectedRecipes = recipeIds
+            .map(id => {
+                return recipes.find({id}).value();
+            })
+            .filter(r => r && Array.isArray(r.ingredients) && r.ingredients.length > 0);
+
+        if (selectedRecipes.length === 0) {
+            return res.status(400).json({error: "No valid recipes with ingredients found"});
+        }
+        console.log(`found ${selectedRecipes.length} recipes.`, selectedRecipes);
+
+        // Flatten ingredients
+        const ingredientRows = [];
+        selectedRecipes.forEach((recipe, i) => {
+            recipe.ingredients.forEach(group => {
+                group.items.forEach(ing => {
+                    ingredientRows.push({
+                        amount: ing.amount || "",
+                        name: ing.name,
+                        recipes: [i+1]
+                    });
+                });
+            });
+        });
+
+        const improvedIngredients = await processIngredients(ingredientRows);
+        // console.log(`improved ingredients: ${improvedIngredients}`, improvedIngredients);
+
+        // Create PDF
+        const doc = new PDFDocument({
+            size: "A4",
+            margin: 40
+        });
+        const timestamp = getCETTimestamp();
+        const username = req.user || "guest";
+        const fileName = `shopping_${username}_${timestamp}.pdf`;
+        const folderPath = join(__dirname, "public", "shopping-lists");
+        if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
+        const filePath = join(folderPath, fileName);
+
+        const writeStream = fs.createWriteStream(filePath);
+        doc.pipe(writeStream);
+
+        // Header
+        doc.fontSize(12).text(`Shopping List for ${username}`, {align: "left"});
+        doc.moveDown(0.5);
+        doc.fontSize(10).text(`Generated from recipes`, {align: "left"});
+        selectedRecipes.forEach((recipe, i) => {
+            doc.fontSize(10).text(`   ${i+1}. ${recipe.name}`, {align: "left"});
+        });
+        doc.moveDown(1.5);
+
+        // Layout constants
+        const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+        const checkboxSize = 12;
+        const spacing = 10;
+        const paddingY = 5;
+        const amountWidth = pageWidth * 0.25;
+        const ingredientWidth = pageWidth - checkboxSize - spacing - amountWidth - spacing * 2;
+
+        let cursorY = doc.y;
+        doc.font("Helvetica");
+        doc.fontSize(8);
+
+        const startX = doc.page.margins.left;
+
+        for (const row of improvedIngredients) {
+            const amount = row.amount || "";
+            const ingredient = row.ingredient || "";
+            const recipes = row.recipes || [];
+
+            const startY = cursorY;
+
+            // Measure text heights without changing cursor
+            const amountHeight = doc.heightOfString(amount, {width: amountWidth, align: "right"});
+            const ingredientHeight = doc.heightOfString(ingredient, {width: ingredientWidth, align: "left"});
+            const rowHeight = Math.max(checkboxSize, amountHeight, ingredientHeight) + paddingY;
+
+            doc.strokeColor("#888888");
+            // Checkbox (vertically centered)
+            doc.rect(
+                startX,
+                startY + (rowHeight - checkboxSize) / 2,
+                checkboxSize,
+                checkboxSize
+            ).stroke();
+
+            // Amount text
+            const amountX = startX + checkboxSize + spacing;
+            doc.text(amount, amountX, startY + paddingY, {
+                width: amountWidth,
+                align: "right"
+            });
+
+// Ingredient text (main part)
+            const ingredientX = amountX + amountWidth + spacing;
+            let textY = startY + paddingY;
+
+            doc.fontSize(8).fillColor("black");
+            doc.text(ingredient, ingredientX, textY, {
+                continued: true,   // keep cursor on same line
+                width: ingredientWidth,
+                align: "left"
+            });
+
+// Secondary part in smaller font + gray
+            const secondary = recipes.map(n => n.toString()).join(", ");
+            if (secondary) {
+                doc.fontSize(6).fillColor("#404040");
+                doc.text(" " + `Recipes ${secondary}`, {
+                    continued: false // release line
+                });
+            }
+
+// Reset back to normal for next row
+            doc.fontSize(8).fillColor("black");
+
+            // Separator line (a bit below text)
+            const lineY = startY + rowHeight;
+            doc.moveTo(startX, lineY)
+                .lineTo(startX + pageWidth, lineY)
+                .stroke();
+
+            // Update cursor
+            cursorY = lineY;
+            if (cursorY > doc.page.height - doc.page.margins.bottom - 40) {
+                doc.addPage();
+                cursorY = doc.page.margins.top;
+            }
+            doc.y = cursorY;
+        }
+
+        doc.x = startX;
+        doc.moveDown(1.5);
+        doc.fontSize(10).text(`Generated ${timestamp}`, {align: "left"});
+
+        doc.end();
+
+        writeStream.on("finish", () => {
+            res.json({url: `/shopping-lists/${fileName}`});
+        });
+
+        writeStream.on("error", (err) => {
+            console.error("Error writing PDF:", err);
+            res.status(500).json({error: "Failed to generate PDF"});
+        });
+
+    } catch (err) {
+        console.error("Shopping list generation failed:", err);
+        res.status(500).json({error: "Internal server error"});
     }
 });
 
@@ -622,6 +872,7 @@ server.use(router);
 
 // Mount uploads outside /api
 app.use('/uploads', express.static(join(__dirname, 'public', 'uploads')));
+app.use('/shopping-lists', express.static(join(__dirname, 'public', 'shopping-lists')));
 
 // Mount API router under /api
 app.use('/api', server);
@@ -638,5 +889,6 @@ app.listen(process.env.SERVER_PORT || 3010, process.env.SERVER_HOSTNAME || "0.0.
         console.log(`  ${baseUrl}/api/${route}`);
     });
     console.log(`  ${baseUrl}/uploads`);
+    console.log(`  ${baseUrl}/shopping-lists`);
 });
 
