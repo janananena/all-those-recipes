@@ -8,11 +8,21 @@ View all your recipes with their tags and ratings, sort them, and quickly add or
 Filter for tags or enter search queries
 ![filter search](imgs/filter.png)
 
+## Shopping Lists
+Chose recipes and generate a combined shopping list from the ingredients
+![shopping list](imgs/shoppinglist.png)
+
+Get a pdf
+![shopping list pdf](imgs/shoppinglist-pdf.png)
+
+Re-access shopping lists and add comments
+![all shopping lists](imgs/all-shoppinglists.png)
+
 ## Recipe Details
 See and edit all parts of a recipe
 ![recipe details](imgs/recipe.png)
 
-Fill ingredients and steps from the thumbnail with one button click
+Fill ingredients and steps from the thumbnail or files with one button click
 ![recipe extracted](imgs/recipe-extracted.png)
 
 ## All Tags
