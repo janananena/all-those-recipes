@@ -18,6 +18,16 @@ Get a pdf
 Re-access shopping lists and add comments
 ![all shopping lists](imgs/all-shoppinglists.png)
 
+## Cooking Overview
+Chose reicpes and generate a cooking overview from the steps
+![cooking](imgs/cooking.png)
+
+Strike steps already done and add notes where needed
+![cooking overview](imgs/cooking-overview.png)
+
+Generate a print version if needed
+![cooking print](imgs/cooking-print.png)
+
 ## Recipe Details
 See and edit all parts of a recipe
 ![recipe details](imgs/recipe.png)
