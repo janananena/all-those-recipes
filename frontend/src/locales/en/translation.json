@@ -4,6 +4,23 @@
     "extractFromImage": "Extract from image",
     "extractFromPdf": "Extract from pdf"
   },
+  "cooking": {
+    "printTitle": "Cooking Overview",
+    "modal": {
+      "selectionTitle": "Create cooking overview",
+      "title": "Cooking Overview",
+      "note": "Only recipes that already have steps are available here. If your recipe has no steps yet, open it in the details view and use the AI buttons to automatically fill them in.",
+      "notePlaceholder": "Note...",
+      "searchPlaceholder": "Search recipes...",
+      "steps": "Steps",
+      "noResults": "No recipes found",
+      "selectedTitle": "Selected Recipes",
+      "emptySelection": "Nothing selected yet",
+      "cancel": "Cancel",
+      "cook": "Cook now",
+      "print": "Print Overview"
+    }
+  },
   "shopping": {
     "noLists": "No shopping lists yet",
     "date": "Created at",
@@ -11,7 +28,8 @@
     "file": "File",
     "notes": "Notes",
     "actions": {
-      "createList": "Create Shopping List"
+      "createList": "Create Shopping List",
+      "createCookingView": "Cook Recipes"
     },
     "modal": {
       "title": "Create Shopping List",

@@ -4,6 +4,23 @@
     "extractFromImage": "Aus Bild erkennen",
     "extractFromPdf": "Aus Pdf erkennen"
   },
+  "cooking": {
+    "printTitle": "Kochübersicht",
+    "modal": {
+      "selectionTitle": "Kochübersicht erstellen",
+      "title": "Kochübersicht",
+      "note": "Nur Rezepte, die bereits Schritte enthalten, sind hier verfügbar. Wenn dein Rezept noch keine Schritte hat, öffne es in der Detailansicht und benutze die KI-Buttons, um sie automatisch zu ergänzen.",
+      "notePlaceholder": "Notiz...",
+      "searchPlaceholder": "Rezepte suchen...",
+      "steps": "Schritte",
+      "noResults": "Keine Rezepte gefunden",
+      "selectedTitle": "Ausgewählte Rezepte",
+      "emptySelection": "Noch nichts ausgewählt",
+      "cancel": "Abbrechen",
+      "cook": "Jetzt Kochen",
+      "print": "Übersicht drucken"
+    }
+  },
   "shopping": {
     "noLists": "Noch keine Einkaufslisten vorhanden",
     "date": "Erstellt am",
@@ -11,7 +28,8 @@
     "file": "Datei",
     "notes": "Notizen",
     "actions": {
-      "createList": "Einkaufsliste erstellen"
+      "createList": "Einkaufsliste erstellen",
+      "createCookingView": "Rezepte kochen"
     },
     "modal": {
       "title": "Einkaufsliste erstellen",
